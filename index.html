@@ -3,49 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chaton Chic | シックでキュートな猫たち</title>
+    <title>Chaton Chic | 風花と水月と...</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=Noto+Serif+JP:wght@400;600;900&display=swap" rel="stylesheet">
     
     <style>
-        /* 共通変数：オープニングのテキスト色などを定義 */
         :root {
-            /* ★ご要望により元の25秒に戻しました★ */
-            --intro-duration: 25s; 
+            --intro-duration: 25s; /* 全体のアニメーション時間 */
             
             --main-serif-font: 'Noto Serif JP', serif;
             --main-sans-font: 'Noto Sans JP', sans-serif;
-            --text-color: #4a4a4a; /* シックな濃いグレー */
-            --accent-color: #c4a3bf; /* 落ち着いたくすみピンク（キュートさの演出） */
-            --bg-color: #fcfaf8; /* 優しいオフホワイト */
+            --text-color: #4a4a4a;
+            --accent-color: #c4a3bf;
+            --bg-color: #fcfaf8;
         }
 
-        /* オープニング画面のコンテナ */
+        /* オープニング画面 */
         #splash-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: var(--bg-color);
+            background-color: #ffffff; /* 元ファイルに合わせて白 */
             z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* visibilityの遷移を遅らせて完全にフェードアウトしてから非表示にする */
+            
+            /* ★修正: 元ファイル(body)にあったpaddingを追加して配置を再現 */
+            padding: 2rem; 
+            box-sizing: border-box;
+
             transition: opacity 1.5s ease-in-out, visibility 0s linear 1.5s;
         }
 
-        /* アニメーション終了後に適用（非表示） */
         #splash-screen.hidden {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
         }
 
-        /* アニメーション内部の設定（元のコードを維持） */
+        /* アニメーションコンテナ */
         .intro-card {
             background-color: transparent;
             width: 100%;
@@ -64,8 +65,11 @@
             overflow: visible;
         }
         
+        /* テキストグループ（フェードアウト用） */
         .outline-group {
-            /* 最後はフェードアウトした状態を維持 */
+            /* 遷移と重なるため、ここではフェードアウトさせずJSで制御、またはタイミングを合わせる */
+            /* 今回は画面ごとフェードアウトするのでanimationは維持でもOKですが、タイミング調整のため削除または調整 */
+            /* 元のキーフレームを使う場合、45%以降で消える設定になっているため、11秒(44%)での遷移なら自然に消えます */
             animation: parentFade var(--intro-duration) linear forwards;
         }
 
@@ -107,7 +111,7 @@
             animation: rippleEffect var(--intro-duration) ease-out 1 forwards;
         }
 
-        /* アニメーション割り当て (省略せず全て記述) */
+        /* アニメーション割り当て */
         .outline-text tspan:nth-child(1) { animation-name: char01; }
         .outline-text tspan:nth-child(2) { animation-name: char02; }
         .outline-text tspan:nth-child(3) { animation-name: char03; }
@@ -123,7 +127,7 @@
         .outline-text tspan:nth-child(13) { animation-name: char13; }
         .outline-text tspan:nth-child(14) { animation-name: char14; }
 
-        /* キーフレーム定義 (元の25秒基準の比率) */
+        /* キーフレーム（元の比率を維持） */
         @keyframes char01 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 8% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char02 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 8% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char03 { 0%, 2% { stroke-dashoffset: 600; fill-opacity: 0; } 10% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
@@ -146,16 +150,16 @@
             100% { stroke-dashoffset: 0; opacity: 1; }
         }
 
+        /* 波紋：38% -> 42% で広がり、フェードアウト */
         @keyframes rippleEffect {
             0%, 38% { r: 0; opacity: 1; stroke-width: 2px; }
             42% { r: 150px; opacity: 0; stroke-width: 0.5px; }
             100% { r: 150px; opacity: 0; stroke-width: 0; }
         }
 
-        /* フェードアウト: 95%あたりから消し始める */
         @keyframes parentFade {
-            0%, 95% { opacity: 1; }
-            100% { opacity: 0; }
+            0%, 45% { opacity: 1; }
+            55%, 100% { opacity: 0; }
         }
     </style>
 
@@ -165,15 +169,14 @@
             font-family: var(--main-sans-font);
             color: var(--text-color);
             background-color: var(--bg-color);
+            /* bodyのpaddingは削除（splash側に移動したため） */
         }
 
-        /* 初期状態：非表示 */
         #main-content {
             opacity: 0;
             visibility: hidden;
             transition: opacity 2s ease-in-out;
         }
-        /* 表示状態 */
         #main-content.visible {
             opacity: 1;
             visibility: visible;
@@ -187,33 +190,31 @@
 
         /* ヘッダー */
         .site-header {
-            padding: 3rem 0;
+            padding: 2rem 0;
             text-align: center;
         }
-        .site-title {
-            font-family: var(--main-serif-font);
-            font-size: 2.5rem;
-            font-weight: 900;
-            letter-spacing: 0.1em;
-            margin: 0;
+        
+        /* ★ロゴとしてのSVG設定 */
+        .logo-svg {
+            width: 100%;
+            max-width: 300px; /* ロゴとしての適度なサイズ */
+            height: auto;
+            margin: 0 auto;
+            display: block;
         }
-        .site-subtitle {
+        .logo-svg text {
+            fill: var(--text-color);
             font-family: var(--main-serif-font);
-            font-size: 1rem;
-            color: var(--accent-color);
-            margin-top: 0.5rem;
+            font-weight: 900;
         }
 
-        /* 猫グリッドレイアウト */
         .cat-grid {
             display: grid;
-            /* 3列、2列の自動調整 */
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 2.5rem;
             padding: 2rem 0 5rem;
         }
 
-        /* 猫カードのデザイン（シック＆キュート） */
         .cat-card {
             background: #fff;
             border: 1px solid #eee;
@@ -224,14 +225,12 @@
             overflow: hidden;
         }
 
-        /* ホバー時のエフェクト：少し浮き上がり、シックな影をつける */
         .cat-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             border-color: var(--accent-color);
         }
 
-        /* オープニングの波紋を意識した装飾（ホバー時） */
         .cat-card::after {
             content: '';
             position: absolute;
@@ -255,10 +254,10 @@
             width: 200px;
             height: 200px;
             margin: 0 auto 1.5rem;
-            border-radius: 50%; /* 円形に切り抜き */
+            border-radius: 50%;
             overflow: hidden;
             border: 3px solid var(--bg-color);
-            box-shadow: 0 0 0 1px var(--text-color); /* 二重線風の枠 */
+            box-shadow: 0 0 0 1px var(--text-color);
         }
 
         .cat-image-frame img {
@@ -285,7 +284,6 @@
             color: #7a7a7a;
         }
 
-        /* フッター */
         .site-footer {
             text-align: center;
             padding: 2rem 0;
@@ -294,7 +292,6 @@
             color: #aaa;
             font-family: var(--main-serif-font);
         }
-
     </style>
 </head>
 <body>
@@ -319,8 +316,16 @@
     <div id="main-content">
         <header class="site-header">
             <div class="container">
-                <h1 class="site-title">Chaton Chic</h1>
-                <p class="site-subtitle">気品ある、愛らしい猫たちとの出会い。</p>
+                <svg class="logo-svg" viewBox="0 0 1000 300">
+                    <g>
+                        <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 40 30 L 945 30 L 945 280" />
+                        <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 945 280 L 40 280 L 40 30" />
+                        <text x="60" y="130" style="font-size: 90px; text-anchor: start;">
+                            <tspan>風</tspan><tspan>花</tspan><tspan style="font-size: 81px;">と</tspan><tspan>水</tspan><tspan>月</tspan><tspan style="font-size: 81px;">と</tspan>
+                            <tspan x="60" dy="120">蒼</tspan><tspan>泉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
+                        </text>
+                    </g>
+                </svg>
             </div>
         </header>
 
@@ -328,49 +333,49 @@
             <div class="cat-grid">
                 <article class="cat-card">
                     <div class="cat-image-frame">
-                        <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&h=400&q=80" alt="ロシアンブルーの猫">
+                        <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&h=400&q=80" alt="ロシアンブルー">
                     </div>
-                    <h2 class="cat-name">Luna (ルナ)</h2>
-                    <p class="cat-desc">エメラルドの瞳を持つロシアンブルー。静寂を愛する、物静かで知的なレディ。月の光のような銀色の毛並みが自慢。</p>
+                    <h2 class="cat-name">Luna</h2>
+                    <p class="cat-desc">静寂を愛するロシアンブルー。</p>
                 </article>
                 
                 <article class="cat-card">
                     <div class="cat-image-frame">
                         <img src="https://images.unsplash.com/photo-1573865526739-1065ae16447b?auto=format&fit=crop&w=400&h=400&q=80" alt="黒猫">
                     </div>
-                    <h2 class="cat-name">Noir (ノワール)</h2>
-                    <p class="cat-desc">漆黒の毛並みが美しいボンベイ。影のように寄り添う甘えん坊で、喉を鳴らす音は誰よりも大きい。</p>
+                    <h2 class="cat-name">Noir</h2>
+                    <p class="cat-desc">影のように寄り添う甘えん坊。</p>
                 </article>
                 
                 <article class="cat-card">
                     <div class="cat-image-frame">
                         <img src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=400&h=400&q=80" alt="スコティッシュフォールド">
                     </div>
-                    <h2 class="cat-name">Maron (マロン)</h2>
-                    <p class="cat-desc">垂れた耳がチャームポイントのスコティッシュフォールド。おっとりとした性格で、日向ぼっこが何よりも好き。</p>
+                    <h2 class="cat-name">Maron</h2>
+                    <p class="cat-desc">おっとりとした癒やしの存在。</p>
                 </article>
 
                 <article class="cat-card">
                     <div class="cat-image-frame">
                         <img src="https://images.unsplash.com/photo-1612904370720-74f9b5598fb5?auto=format&fit=crop&w=400&h=400&q=80" alt="白猫">
                     </div>
-                    <h2 class="cat-name">Blanc (ブラン)</h2>
-                    <p class="cat-desc">雪のような純白のターキッシュアンゴラ。気位が高そうに見えて、実は遊び好き。羽のおもちゃには目がない。</p>
+                    <h2 class="cat-name">Blanc</h2>
+                    <p class="cat-desc">雪のような毛並みの貴公子。</p>
                 </article>
                 
                 <article class="cat-card">
                     <div class="cat-image-frame">
-                        <img src="https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=400&h=400&q=80" alt="ベンガル猫">
+                        <img src="https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=400&h=400&q=80" alt="ベンガル">
                     </div>
-                    <h2 class="cat-name">Leo (レオ)</h2>
-                    <p class="cat-desc">野生的なヒョウ柄を持つベンガル。好奇心旺盛で活発。部屋中を駆け回る小さな冒険家。</p>
+                    <h2 class="cat-name">Leo</h2>
+                    <p class="cat-desc">好奇心旺盛な小さな冒険家。</p>
                 </article>
             </div>
         </main>
 
         <footer class="site-footer">
             <div class="container">
-                &copy; 2024 Chaton Chic. All rights reserved.
+                &copy; 2024 風花と水月と... All rights reserved.
             </div>
         </footer>
     </div>
@@ -380,18 +385,19 @@
             const splash = document.getElementById('splash-screen');
             const mainContent = document.getElementById('main-content');
             
-            // ★ここも25秒 (25000ms) に戻しています★
-            // CSSのアニメーション終了とタイミングを合わせる
-            const animationDuration = 25000;
+            // ★タイミング調整
+            // 波紋アニメーション(rippleEffect)は 38% -> 42% で実行される
+            // 全体25秒(25000ms)の 42% = 10500ms
+            // 少し余裕を見て 11000ms で遷移させれば、波紋が終わった直後に切り替わる
+            const switchTiming = 11000;
 
             setTimeout(() => {
-                // アニメーション画面をゆっくりフェードアウト
+                // スプラッシュをフェードアウト
                 splash.classList.add('hidden');
                 
-                // 本編をゆっくりフェードイン
+                // 本編をフェードイン
                 mainContent.classList.add('visible');
-
-            }, animationDuration);
+            }, switchTiming);
         });
     </script>
 </body>
