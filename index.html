@@ -4,154 +4,332 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>株式会社Global Innovate | 未来をデザインする</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- 本編(Main Content)用の簡易スタイル --- */
+        body { margin: 0; font-family: 'Noto Sans JP', sans-serif; color: #333; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; padding: 0; }
+        
+        .header { display: flex; justify-content: space-between; padding: 1rem 2rem; align-items: center; position: absolute; width: 100%; box-sizing: border-box; z-index: 10; color: #fff; }
+        .nav-list { display: flex; gap: 2rem; }
+        .hero { height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
+        .hero-image img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.6); }
+        .hero-content { text-align: center; position: relative; z-index: 1; }
+        .hero-title { font-size: 3rem; margin-bottom: 1rem; }
+        
+        .section { padding: 4rem 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+        
+        /* カードスタイルの競合を防ぐため、本編のカードはそのままでOK */
+        .card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card-img img { width: 100%; height: 200px; object-fit: cover; }
+        .card-body { padding: 1.5rem; }
+        
+        .btn-primary { background: #007bff; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; }
+        .footer { background: #1a1a1a; color: #fff; padding: 3rem 2rem; }
+
+        /* --- 初期状態の制御 --- */
+        /* メインコンテンツは最初は非表示（opacity 0）にしておく */
+        #main-content {
+            opacity: 0;
+            transition: opacity 1.5s ease-in;
+            visibility: hidden; /* クリック判定などを消すため */
+        }
+        /* フェードイン用クラス */
+        #main-content.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+
+    <style>
+        /* --- オープニング専用スタイル --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 9999; /* 最前面に配置 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease-out, visibility 1s;
+        }
+
+        /* アニメーション終了後に適用するクラス（非表示） */
+        #splash-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        :root {
+            /* ★調整ポイント: アニメーション時間を5秒に短縮 (元は25s) */
+            --intro-duration: 5s; 
+            
+            --intro-font: 'Noto Serif JP', serif;
+            --intro-text-color: #4a4a4a;
+        }
+
+        /* クラス名の競合を防ぐため、.card を .intro-card に変更 */
+        .intro-card {
+            background-color: transparent;
+            width: 100%;
+            max-width: 1000px;
+            aspect-ratio: 16/9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .outline-svg {
+            width: 90%;
+            height: auto;
+            overflow: visible;
+        }
+        
+        .outline-group {
+            animation: parentFade var(--intro-duration) linear forwards; /* forwardsで最後の状態を維持 */
+        }
+
+        .outline-text {
+            font-family: var(--intro-font);
+            font-size: 90px;
+            font-weight: 900;
+            text-anchor: start;
+        }
+
+        .outline-text tspan {
+            fill: var(--intro-text-color);
+            fill-opacity: 0;
+            stroke: var(--intro-text-color);
+            stroke-width: 1px;
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation-duration: var(--intro-duration);
+            animation-timing-function: linear;
+            animation-iteration-count: 1; /* 1回だけ実行 */
+            animation-fill-mode: forwards;
+        }
+
+        .border-line {
+            fill: none;
+            stroke: var(--intro-text-color);
+            stroke-width: 1px;
+            stroke-dasharray: 1200;
+            stroke-dashoffset: 1200;
+            animation: borderDraw var(--intro-duration) linear 1;
+            animation-fill-mode: forwards;
+        }
+
+        .ripple-circle {
+            fill: none;
+            stroke: var(--intro-text-color);
+            stroke-width: 2px;
+            opacity: 0;
+            transform-origin: center;
+            animation: rippleEffect var(--intro-duration) ease-out 1;
+            animation-fill-mode: forwards;
+        }
+
+        /* アニメーション割り当て */
+        .outline-text tspan:nth-child(1) { animation-name: char01; }
+        .outline-text tspan:nth-child(2) { animation-name: char02; }
+        .outline-text tspan:nth-child(3) { animation-name: char03; }
+        .outline-text tspan:nth-child(4) { animation-name: char04; }
+        .outline-text tspan:nth-child(5) { animation-name: char05; }
+        .outline-text tspan:nth-child(6) { animation-name: char06; }
+        .outline-text tspan:nth-child(7) { animation-name: char07; }
+        .outline-text tspan:nth-child(8) { animation-name: char08; }
+        .outline-text tspan:nth-child(9) { animation-name: char09; }
+        .outline-text tspan:nth-child(10) { animation-name: char10; }
+        .outline-text tspan:nth-child(11) { animation-name: char11; }
+        .outline-text tspan:nth-child(12) { animation-name: char12; }
+        .outline-text tspan:nth-child(13) { animation-name: char13; }
+        .outline-text tspan:nth-child(14) { animation-name: char14; }
+
+        /* キーフレーム (比率はそのまま、時間は変数のdurationに依存) */
+        @keyframes char01 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        /* (長くなるため簡略化して共通化できる部分はまとめましたが、元の動きを再現するためそのまま列挙します) */
+        @keyframes char02 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char03 { 0%, 2% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char04 { 0%, 4% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char05 { 0%, 4% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char06 { 0%, 6% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char07 { 0%, 8% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char08 { 0%, 8% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char09 { 0%, 10% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char10 { 0%, 12% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char11 { 0%, 12% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char12 { 0%, 14% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char13 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char14 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+
+        @keyframes borderDraw {
+            0%, 30% { stroke-dashoffset: 1200; opacity: 1; }
+            38% { stroke-dashoffset: 0; opacity: 1; }
+            100% { stroke-dashoffset: 0; opacity: 1; }
+        }
+
+        @keyframes rippleEffect {
+            0%, 38% { r: 0; opacity: 1; stroke-width: 2px; }
+            42% { r: 150px; opacity: 0; stroke-width: 0.5px; }
+            100% { r: 150px; opacity: 0; stroke-width: 0; }
+        }
+
+        /* 最後のフェードアウト: 90%あたりから消し始めるように調整 */
+        @keyframes parentFade {
+            0%, 80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
 </head>
 <body>
 
-    <header class="header">
-        <div class="container header-inner">
-            <a href="index.html" class="logo">Global Innovate</a>
-            <nav class="nav">
-                <ul class="nav-list">
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="about.html">About Us</a></li>
-                    <li><a href="#">Services</a></li>
-                    <li><a href="#">Careers</a></li>
-                    <li><a href="#" class="btn-primary">Contact</a></li>
-                </ul>
-            </nav>
-            <button class="mobile-menu-btn" aria-label="メニューを開く">
-                <span></span><span></span><span></span>
-            </button>
-        </div>
-    </header>
+    <div id="splash-screen">
+        <div class="intro-card">
+            <svg class="outline-svg" viewBox="0 0 1000 300">
+                <g class="outline-group">
+                    <path class="border-line" d="M 40 30 L 945 30 L 945 280" />
+                    <path class="border-line" d="M 945 280 L 40 280 L 40 30" />
 
-    <section class="hero">
-        <div class="hero-image">
-            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80" alt="モダンなオフィスビル">
-        </div>
-        <div class="container hero-content">
-            <h1 class="hero-title">テクノロジーで、<br>世界をよりシンプルに。</h1>
-            <p class="hero-text">私たちは最先端の技術とデザイン思考で、<br>企業のデジタルトランスフォーメーションを支援します。</p>
-            <a href="about.html" class="btn-text">私たちのミッションを見る <span class="arrow">→</span></a>
-        </div>
-    </section>
+                    <circle class="ripple-circle" cx="40" cy="30" r="0" />
+                    <circle class="ripple-circle" cx="945" cy="280" r="0" />
 
-    <section class="section section-news">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">Latest News</h2>
-                <a href="#" class="view-all">View All</a>
-            </div>
-            <ul class="news-list">
-                <li class="news-item">
-                    <span class="news-date">2024.05.20</span>
-                    <span class="news-cat">Press</span>
-                    <a href="#" class="news-link">シリーズBラウンドでの資金調達完了のお知らせ</a>
-                </li>
-                <li class="news-item">
-                    <span class="news-date">2024.04.15</span>
-                    <span class="news-cat">Event</span>
-                    <a href="#" class="news-link">Global Tech Summit 2024に弊社代表が登壇します</a>
-                </li>
-                <li class="news-item">
-                    <span class="news-date">2024.04.01</span>
-                    <span class="news-cat">Info</span>
-                    <a href="#" class="news-link">2025年度新卒採用のエントリー受付を開始しました</a>
-                </li>
-            </ul>
+                    <text x="60" y="130" class="outline-text">
+                        <tspan>風</tspan>
+                        <tspan>花</tspan>
+                        <tspan style="font-size: 81px;">と</tspan>
+                        <tspan>水</tspan>
+                        <tspan>月</tspan>
+                        <tspan style="font-size: 81px;">と</tspan>
+                        
+                        <tspan x="60" dy="120">蒼</tspan>
+                        <tspan>泉</tspan>
+                        <tspan style="font-size: 81px;">と</tspan>
+                        <tspan>灯</tspan>
+                        <tspan>莉</tspan>
+                        <tspan style="font-size: 81px;">と</tspan>
+                        <tspan>咲</tspan>
+                        <tspan>花</tspan>
+                    </text>
+                </g>
+            </svg>
         </div>
-    </section>
+    </div>
 
-    <section class="section section-services bg-gray">
-        <div class="container">
-            <div class="section-intro">
-                <h2 class="section-title">Our Services</h2>
-                <p class="section-desc">ビジネスの課題を解決する、包括的なソリューション。</p>
-            </div>
-            <div class="grid-3">
-                <article class="card">
-                    <div class="card-img">
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80" alt="データ分析">
-                    </div>
-                    <div class="card-body">
-                        <h3>Data Analytics</h3>
-                        <p>膨大なデータから価値あるインサイトを抽出し、意思決定を加速させます。</p>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="card-img">
-                        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="セキュリティ">
-                    </div>
-                    <div class="card-body">
-                        <h3>Cyber Security</h3>
-                        <p>最新のセキュリティ技術で、企業の資産と信頼を強固に守ります。</p>
-                    </div>
-                </article>
-                <article class="card">
-                    <div class="card-img">
-                        <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80" alt="コンサルティング">
-                    </div>
-                    <div class="card-body">
-                        <h3>DX Consulting</h3>
-                        <p>組織のデジタル化を戦略立案から実装までトータルでサポートします。</p>
-                    </div>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <section class="section section-culture">
-        <div class="container split-layout">
-            <div class="split-content">
-                <h2 class="section-title">Culture</h2>
-                <h3 class="sub-heading">多様性がイノベーションを生む。</h3>
-                <p>私たちは、異なるバックグラウンドを持つメンバーが互いに尊重し合い、自由に意見を交わすことで、これまでにない価値が生まれると信じています。オープンでフラットな環境が、私たちの強みです。</p>
-                <a href="#" class="btn-primary mt-4">採用情報を見る</a>
-            </div>
-            <div class="split-image">
-                <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1000&q=80" alt="チームミーティング">
-            </div>
-        </div>
-    </section>
-
-    <footer class="footer">
-        <div class="container footer-inner">
-            <div class="footer-info">
-                <a href="index.html" class="footer-logo">Global Innovate</a>
-                <address>
-                    〒100-0005<br>
-                    東京都千代田区丸の内1-1-1<br>
-                    Global Tech Tower 25F
-                </address>
-            </div>
-            <div class="footer-links">
-                <div class="link-group">
-                    <h4>Company</h4>
-                    <ul>
+    <div id="main-content">
+        <header class="header">
+            <div class="container header-inner">
+                <a href="index.html" class="logo">Global Innovate</a>
+                <nav class="nav">
+                    <ul class="nav-list">
+                        <li><a href="index.html">Home</a></li>
                         <li><a href="about.html">About Us</a></li>
-                        <li><a href="#">Leadership</a></li>
-                        <li><a href="#">Sustainability</a></li>
+                        <li><a href="#">Services</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#" class="btn-primary">Contact</a></li>
                     </ul>
+                </nav>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="hero-image">
+                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80" alt="モダンなオフィスビル">
+            </div>
+            <div class="container hero-content">
+                <h1 class="hero-title">テクノロジーで、<br>世界をよりシンプルに。</h1>
+                <p class="hero-text">私たちは最先端の技術とデザイン思考で、<br>企業のデジタルトランスフォーメーションを支援します。</p>
+                <a href="about.html" class="btn-text">私たちのミッションを見る <span class="arrow">→</span></a>
+            </div>
+        </section>
+
+        <section class="section section-news">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Latest News</h2>
                 </div>
-                <div class="link-group">
-                    <h4>Services</h4>
-                    <ul>
-                        <li><a href="#">Analytics</a></li>
-                        <li><a href="#">Security</a></li>
-                        <li><a href="#">Consulting</a></li>
-                    </ul>
+                <ul class="news-list">
+                    <li class="news-item">2024.05.20 [Press] シリーズBラウンドでの資金調達完了のお知らせ</li>
+                    <li class="news-item">2024.04.15 [Event] Global Tech Summit 2024に弊社代表が登壇します</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section section-services bg-gray">
+            <div class="container">
+                <h2 class="section-title">Our Services</h2>
+                <div class="grid-3">
+                    <article class="card">
+                        <div class="card-img">
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80" alt="データ分析">
+                        </div>
+                        <div class="card-body">
+                            <h3>Data Analytics</h3>
+                            <p>膨大なデータから価値あるインサイトを抽出します。</p>
+                        </div>
+                    </article>
+                    <article class="card">
+                        <div class="card-img">
+                            <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="セキュリティ">
+                        </div>
+                        <div class="card-body">
+                            <h3>Cyber Security</h3>
+                            <p>企業の資産と信頼を強固に守ります。</p>
+                        </div>
+                    </article>
+                    <article class="card">
+                        <div class="card-img">
+                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80" alt="コンサルティング">
+                        </div>
+                        <div class="card-body">
+                            <h3>DX Consulting</h3>
+                            <p>組織のデジタル化をトータルサポート。</p>
+                        </div>
+                    </article>
                 </div>
             </div>
-        </div>
-        <div class="copyright">
-            &copy; 2024 Global Innovate Inc. All Rights Reserved.
-        </div>
-    </footer>
+        </section>
 
-    <script src="script.js"></script>
+        <footer class="footer">
+            <div class="container footer-inner">
+                <div class="copyright">
+                    &copy; 2024 Global Innovate Inc. All Rights Reserved.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            const splash = document.getElementById('splash-screen');
+            const mainContent = document.getElementById('main-content');
+            
+            // アニメーション設定時間 (CSSの --intro-duration と合わせる)
+            // 少し余裕を持たせて切り替える (5000ms = 5秒)
+            const animationDuration = 5000;
+
+            setTimeout(() => {
+                // アニメーション画面をフェードアウト
+                splash.classList.add('hidden');
+                
+                // 本編をフェードイン
+                mainContent.classList.add('visible');
+
+                // 完全に消えたらDOMから削除してもよいが、今回は非表示のまま
+            }, animationDuration);
+        });
+    </script>
 </body>
 </html>
