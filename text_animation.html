@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Outline Animation - Faster Overlap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ベース設定 */
+        :root {
+            /* 全体の時間 (20秒)
+             * 文字間隔 0.75s に合わせて全体を最適化
+             * 1% = 0.2s
+             */
+            --total-duration: 20s;
+            
+            --main-font: 'Noto Serif JP', serif;
+            --bg-color: #ffffff;
+            --card-bg: #f2f2f2;
+            --text-color: #4a4a4a;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: var(--main-font);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 1000px;
+            aspect-ratio: 16/9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .outline-svg {
+            width: 90%;
+            height: auto;
+            overflow: visible;
+        }
+        
+        /* 親要素(グループ) */
+        .outline-group {
+            animation: parentFade var(--total-duration) linear infinite;
+        }
+
+        /* テキスト設定 */
+        .outline-text {
+            font-size: 90px;
+            font-weight: 900;
+            text-anchor: start;
+        }
+
+        /* 文字のアニメーション共通 */
+        .outline-text tspan {
+            fill: var(--text-color);
+            fill-opacity: 0;
+            stroke: var(--text-color);
+            stroke-width: 1px;
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation-duration: var(--total-duration);
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+
+        /* 罫線（ボーダー）の設定 */
+        .border-line {
+            fill: none;
+            stroke: var(--text-color);
+            stroke-width: 1px;
+            
+            stroke-dasharray: 2400;
+            stroke-dashoffset: 2400;
+            
+            animation: borderDraw var(--total-duration) linear infinite;
+        }
+
+        /* 各文字のアニメーション割り当て */
+        .outline-text tspan:nth-child(1) { animation-name: char01; }
+        .outline-text tspan:nth-child(2) { animation-name: char02; }
+        .outline-text tspan:nth-child(3) { animation-name: char03; }
+        .outline-text tspan:nth-child(4) { animation-name: char04; }
+        .outline-text tspan:nth-child(5) { animation-name: char05; }
+        .outline-text tspan:nth-child(6) { animation-name: char06; }
+        
+        .outline-text tspan:nth-child(7) { animation-name: char07; }
+        .outline-text tspan:nth-child(8) { animation-name: char08; }
+        .outline-text tspan:nth-child(9) { animation-name: char09; }
+        .outline-text tspan:nth-child(10) { animation-name: char10; }
+        .outline-text tspan:nth-child(11) { animation-name: char11; }
+        .outline-text tspan:nth-child(12) { animation-name: char12; }
+        .outline-text tspan:nth-child(13) { animation-name: char13; }
+        .outline-text tspan:nth-child(14) { animation-name: char14; }
+
+        /* キーフレーム定義 (Total 20s)
+         * 1% = 0.2s
+         * 文字描画 2s = 10%
+         * 文字間隔 0.75s = 3.75%
+         */
+        
+        @keyframes char01 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 3.75% { stroke-dashoffset: 225; fill-opacity: 0; } 10% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char02 { 0%, 3.75% { stroke-dashoffset: 600; fill-opacity: 0; } 7.5% { stroke-dashoffset: 225; fill-opacity: 0; } 13.75% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char03 { 0%, 7.5% { stroke-dashoffset: 600; fill-opacity: 0; } 11.25% { stroke-dashoffset: 225; fill-opacity: 0; } 17.5% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char04 { 0%, 11.25% { stroke-dashoffset: 600; fill-opacity: 0; } 15% { stroke-dashoffset: 225; fill-opacity: 0; } 21.25% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char05 { 0%, 15% { stroke-dashoffset: 600; fill-opacity: 0; } 18.75% { stroke-dashoffset: 225; fill-opacity: 0; } 25% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char06 { 0%, 18.75% { stroke-dashoffset: 600; fill-opacity: 0; } 22.5% { stroke-dashoffset: 225; fill-opacity: 0; } 28.75% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char07 { 0%, 22.5% { stroke-dashoffset: 600; fill-opacity: 0; } 26.25% { stroke-dashoffset: 225; fill-opacity: 0; } 32.5% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char08 { 0%, 26.25% { stroke-dashoffset: 600; fill-opacity: 0; } 30% { stroke-dashoffset: 225; fill-opacity: 0; } 36.25% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char09 { 0%, 30% { stroke-dashoffset: 600; fill-opacity: 0; } 33.75% { stroke-dashoffset: 225; fill-opacity: 0; } 40% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char10 { 0%, 33.75% { stroke-dashoffset: 600; fill-opacity: 0; } 37.5% { stroke-dashoffset: 225; fill-opacity: 0; } 43.75% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char11 { 0%, 37.5% { stroke-dashoffset: 600; fill-opacity: 0; } 41.25% { stroke-dashoffset: 225; fill-opacity: 0; } 47.5% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char12 { 0%, 41.25% { stroke-dashoffset: 600; fill-opacity: 0; } 45% { stroke-dashoffset: 225; fill-opacity: 0; } 51.25% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char13 { 0%, 45% { stroke-dashoffset: 600; fill-opacity: 0; } 48.75% { stroke-dashoffset: 225; fill-opacity: 0; } 55% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char14 { 0%, 48.75% { stroke-dashoffset: 600; fill-opacity: 0; } 52.5% { stroke-dashoffset: 225; fill-opacity: 0; } 58.75% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+
+        /* 罫線のアニメーション (2秒)
+         * 12s開始(60%) -> 14s終了(70%)
+         */
+        @keyframes borderDraw {
+            0%, 60% { stroke-dashoffset: 2400; opacity: 1; }
+            70% { stroke-dashoffset: 0; opacity: 1; }
+            100% { stroke-dashoffset: 0; opacity: 1; }
+        }
+
+        /* グループ全体のフェードアウト
+         * 待機 3s後 (17s = 85%) にフェード開始
+         * 1.5s (92.5%) で消える
+         */
+        @keyframes parentFade {
+            0%, 85% { opacity: 1; }
+            92.5%, 100% { opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <svg class="outline-svg" viewBox="0 0 1000 300">
+            <!-- 全体を囲むグループ -->
+            <g class="outline-group">
+                <!-- 
+                    罫線 (時計回り)
+                    Padding: 20px
+                    Rect: 40,30 - 945,280
+                -->
+                <path class="border-line" d="
+                    M 40 30
+                    L 945 30
+                    L 945 280
+                    L 40 280
+                    Z
+                " />
+
+                <text x="60" y="130" class="outline-text">
+                    <tspan>風</tspan>
+                    <tspan>花</tspan>
+                    <tspan style="font-size: 81px;">と</tspan>
+                    <tspan>水</tspan>
+                    <tspan>月</tspan>
+                    <tspan style="font-size: 81px;">と</tspan>
+                    
+                    <tspan x="60" dy="120">蒼</tspan>
+                    <tspan>泉</tspan>
+                    <tspan style="font-size: 81px;">と</tspan>
+                    <tspan>灯</tspan>
+                    <tspan>莉</tspan>
+                    <tspan style="font-size: 81px;">と</tspan>
+                    <tspan>咲</tspan>
+                    <tspan>花</tspan>
+                </text>
+            </g>
+        </svg>
+    </div>
+
+</body>
+</html>
