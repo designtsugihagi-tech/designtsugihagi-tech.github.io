@@ -43,6 +43,14 @@
             pointer-events: none;
         }
 
+        /* ★追加: スキップ時用のクラス 
+           JavaScriptで「訪問済み」と判定された場合、
+           CSSのアニメーション待機時間を無視して即座に消すために使用します。
+        */
+        #splash-screen.skipped {
+            display: none !important;
+        }
+
         /* アニメーションコンテナ */
         .intro-card {
             background-color: transparent;
@@ -62,17 +70,11 @@
             overflow: visible;
         }
         
-        .outline-group {
-            /* 画面遷移で消えるためアニメーションでのフェードアウトは不要 */
-            /* animation: parentFade var(--intro-duration) linear forwards; */
-        }
-
-        /* ★修正: テキストを中央揃えにする設定を追加 */
         .outline-text {
             font-family: var(--main-serif-font);
             font-size: 90px;
             font-weight: 900;
-            text-anchor: middle; /* 中央揃え */
+            text-anchor: middle;
         }
 
         .outline-text tspan {
@@ -170,6 +172,15 @@
             visibility: visible;
         }
 
+        /* ★追加: 即時表示用のクラス 
+           アニメーションスキップ時に、フェードインを待たずに即座に表示するためのスタイル
+        */
+        #main-content.immediate-visible {
+            opacity: 1;
+            visibility: visible;
+            transition: none; /* トランジションを無効化 */
+        }
+
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -185,7 +196,7 @@
         /* ロゴSVG設定 */
         .logo-svg {
             width: 100%;
-            max-width: 320px; /* 見やすいサイズに調整 */
+            max-width: 320px;
             height: auto;
             margin: 0 auto;
             display: block;
@@ -370,18 +381,34 @@
     </div>
 
     <script>
-        window.addEventListener('load', () => {
+        // DOMの読み込みを待つ
+        window.addEventListener('DOMContentLoaded', () => {
             const splash = document.getElementById('splash-screen');
             const mainContent = document.getElementById('main-content');
             
-            // ★タイミング調整
-            // 波紋アニメーション完了が約10.5秒(42%)のため、11秒で切り替え
-            const switchTiming = 11000;
-
-            setTimeout(() => {
-                splash.classList.add('hidden');
-                mainContent.classList.add('visible');
-            }, switchTiming);
+            // セッションストレージを確認（キー名は任意の名前 'visited'）
+            if (sessionStorage.getItem('visited')) {
+                // ■ 2回目以降のアクセス（すでに訪問済み）
+                
+                // アニメーションを即座に非表示にするスタイルを適用
+                splash.classList.add('skipped');
+                
+                // 本編を即座に表示（フェードインアニメーションも無効化）
+                mainContent.classList.add('immediate-visible');
+                
+            } else {
+                // ■ 初回アクセス時
+                
+                const switchTiming = 11000;
+                
+                setTimeout(() => {
+                    splash.classList.add('hidden');
+                    mainContent.classList.add('visible');
+                    
+                    // アニメーション完了後に「訪問済み」フラグを保存
+                    sessionStorage.setItem('visited', 'true');
+                }, switchTiming);
+            }
         });
     </script>
 </body>
