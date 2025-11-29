@@ -190,15 +190,25 @@
         /* ヘッダー */
         .site-header {
             padding: 2rem 0;
-            text-align: center;
+            text-align: left; /* 左寄せ */
         }
         
+        /* ロゴリンク設定 */
+        .logo-link {
+            display: inline-block;
+            transition: opacity 0.3s;
+        }
+        .logo-link:hover {
+            opacity: 0.7;
+        }
+
         /* ロゴSVG設定 */
         .logo-svg {
             width: 100%;
-            max-width: 320px;
+            /* 1行表示に伴い、横幅の最大値を広げました */
+            max-width: 600px;
             height: auto;
-            margin: 0 auto;
+            margin: 0;
             display: block;
         }
         .logo-svg text {
@@ -316,16 +326,21 @@
     <div id="main-content">
         <header class="site-header">
             <div class="container">
-                <svg class="logo-svg" viewBox="0 0 1000 300">
-                    <g>
-                        <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 40 30 L 945 30 L 945 280" />
-                        <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 945 280 L 40 280 L 40 30" />
-                        <text x="492.5" y="130" style="font-size: 90px; text-anchor: middle;">
-                            <tspan>風</tspan><tspan>花</tspan><tspan style="font-size: 81px;">と</tspan><tspan>水</tspan><tspan>月</tspan><tspan style="font-size: 81px;">と</tspan>
-                            <tspan x="492.5" dy="120">蒼</tspan><tspan>泉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
-                        </text>
-                    </g>
-                </svg>
+                <a href="index.html" class="logo-link">
+                    <!-- ★修正: viewBoxを横長(1500x200)に変更し、1行レイアウトに調整 -->
+                    <svg class="logo-svg" viewBox="0 0 1500 200">
+                        <g>
+                            <!-- 枠線を横長に調整 -->
+                            <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 40 30 L 1460 30 L 1460 170" />
+                            <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 1460 170 L 40 170 L 40 30" />
+                            
+                            <!-- テキストを1行に配置 -->
+                            <text x="750" y="125" style="font-size: 80px; text-anchor: middle; letter-spacing: 0.1em;">
+                                <tspan>風</tspan><tspan>花</tspan><tspan style="font-size: 72px;">と</tspan><tspan>水</tspan><tspan>月</tspan><tspan style="font-size: 72px;">と</tspan><tspan>蒼</tspan><tspan>泉</tspan><tspan style="font-size: 72px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 72px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
+                            </text>
+                        </g>
+                    </svg>
+                </a>
             </div>
         </header>
 
