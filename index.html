@@ -27,16 +27,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #ffffff; /* 元ファイルに合わせて白 */
+            background-color: #ffffff;
             z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
-            
-            /* ★修正: 元ファイル(body)にあったpaddingを追加して配置を再現 */
-            padding: 2rem; 
+            padding: 2rem;
             box-sizing: border-box;
-
             transition: opacity 1.5s ease-in-out, visibility 0s linear 1.5s;
         }
 
@@ -65,19 +62,17 @@
             overflow: visible;
         }
         
-        /* テキストグループ（フェードアウト用） */
         .outline-group {
-            /* 遷移と重なるため、ここではフェードアウトさせずJSで制御、またはタイミングを合わせる */
-            /* 今回は画面ごとフェードアウトするのでanimationは維持でもOKですが、タイミング調整のため削除または調整 */
-            /* 元のキーフレームを使う場合、45%以降で消える設定になっているため、11秒(44%)での遷移なら自然に消えます */
-            animation: parentFade var(--intro-duration) linear forwards;
+            /* 画面遷移で消えるためアニメーションでのフェードアウトは不要 */
+            /* animation: parentFade var(--intro-duration) linear forwards; */
         }
 
+        /* ★修正: テキストを中央揃えにする設定を追加 */
         .outline-text {
             font-family: var(--main-serif-font);
             font-size: 90px;
             font-weight: 900;
-            text-anchor: start;
+            text-anchor: middle; /* 中央揃え */
         }
 
         .outline-text tspan {
@@ -127,7 +122,7 @@
         .outline-text tspan:nth-child(13) { animation-name: char13; }
         .outline-text tspan:nth-child(14) { animation-name: char14; }
 
-        /* キーフレーム（元の比率を維持） */
+        /* キーフレーム定義 */
         @keyframes char01 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 8% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char02 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 8% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char03 { 0%, 2% { stroke-dashoffset: 600; fill-opacity: 0; } 10% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
@@ -150,16 +145,10 @@
             100% { stroke-dashoffset: 0; opacity: 1; }
         }
 
-        /* 波紋：38% -> 42% で広がり、フェードアウト */
         @keyframes rippleEffect {
             0%, 38% { r: 0; opacity: 1; stroke-width: 2px; }
             42% { r: 150px; opacity: 0; stroke-width: 0.5px; }
             100% { r: 150px; opacity: 0; stroke-width: 0; }
-        }
-
-        @keyframes parentFade {
-            0%, 45% { opacity: 1; }
-            55%, 100% { opacity: 0; }
         }
     </style>
 
@@ -169,7 +158,6 @@
             font-family: var(--main-sans-font);
             color: var(--text-color);
             background-color: var(--bg-color);
-            /* bodyのpaddingは削除（splash側に移動したため） */
         }
 
         #main-content {
@@ -194,10 +182,10 @@
             text-align: center;
         }
         
-        /* ★ロゴとしてのSVG設定 */
+        /* ロゴSVG設定 */
         .logo-svg {
             width: 100%;
-            max-width: 300px; /* ロゴとしての適度なサイズ */
+            max-width: 320px; /* 見やすいサイズに調整 */
             height: auto;
             margin: 0 auto;
             display: block;
@@ -304,9 +292,10 @@
                     <path class="border-line" d="M 945 280 L 40 280 L 40 30" />
                     <circle class="ripple-circle" cx="40" cy="30" r="0" />
                     <circle class="ripple-circle" cx="945" cy="280" r="0" />
-                    <text x="60" y="130" class="outline-text">
+                    
+                    <text x="492.5" y="130" class="outline-text">
                         <tspan>風</tspan><tspan>花</tspan><tspan style="font-size: 81px;">と</tspan><tspan>水</tspan><tspan>月</tspan><tspan style="font-size: 81px;">と</tspan>
-                        <tspan x="60" dy="120">蒼</tspan><tspan>泉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
+                        <tspan x="492.5" dy="120">蒼</tspan><tspan>泉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
                     </text>
                 </g>
             </svg>
@@ -320,9 +309,9 @@
                     <g>
                         <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 40 30 L 945 30 L 945 280" />
                         <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 945 280 L 40 280 L 40 30" />
-                        <text x="60" y="130" style="font-size: 90px; text-anchor: start;">
+                        <text x="492.5" y="130" style="font-size: 90px; text-anchor: middle;">
                             <tspan>風</tspan><tspan>花</tspan><tspan style="font-size: 81px;">と</tspan><tspan>水</tspan><tspan>月</tspan><tspan style="font-size: 81px;">と</tspan>
-                            <tspan x="60" dy="120">蒼</tspan><tspan>泉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
+                            <tspan x="492.5" dy="120">蒼</tspan><tspan>泉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
                         </text>
                     </g>
                 </svg>
@@ -386,16 +375,11 @@
             const mainContent = document.getElementById('main-content');
             
             // ★タイミング調整
-            // 波紋アニメーション(rippleEffect)は 38% -> 42% で実行される
-            // 全体25秒(25000ms)の 42% = 10500ms
-            // 少し余裕を見て 11000ms で遷移させれば、波紋が終わった直後に切り替わる
+            // 波紋アニメーション完了が約10.5秒(42%)のため、11秒で切り替え
             const switchTiming = 11000;
 
             setTimeout(() => {
-                // スプラッシュをフェードアウト
                 splash.classList.add('hidden');
-                
-                // 本編をフェードイン
                 mainContent.classList.add('visible');
             }, switchTiming);
         });
