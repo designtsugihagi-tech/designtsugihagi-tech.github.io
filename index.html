@@ -3,83 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>株式会社Global Innovate | 未来をデザインする</title>
+    <title>Chaton Chic | シックでキュートな猫たち</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=Noto+Serif+JP:wght@400;600;900&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 本編(Main Content)用の簡易スタイル --- */
-        body { margin: 0; font-family: 'Noto Sans JP', sans-serif; color: #333; }
-        a { text-decoration: none; color: inherit; }
-        ul { list-style: none; padding: 0; }
-        
-        .header { display: flex; justify-content: space-between; padding: 1rem 2rem; align-items: center; position: absolute; width: 100%; box-sizing: border-box; z-index: 10; color: #fff; }
-        .nav-list { display: flex; gap: 2rem; }
-        .hero { height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; color: #fff; overflow: hidden; }
-        .hero-image img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: brightness(0.6); }
-        .hero-content { text-align: center; position: relative; z-index: 1; }
-        .hero-title { font-size: 3rem; margin-bottom: 1rem; }
-        
-        .section { padding: 4rem 2rem; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-        
-        /* カードスタイルの競合を防ぐため、本編のカードはそのままでOK */
-        .card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .card-img img { width: 100%; height: 200px; object-fit: cover; }
-        .card-body { padding: 1.5rem; }
-        
-        .btn-primary { background: #007bff; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; }
-        .footer { background: #1a1a1a; color: #fff; padding: 3rem 2rem; }
-
-        /* --- 初期状態の制御 --- */
-        /* メインコンテンツは最初は非表示（opacity 0）にしておく */
-        #main-content {
-            opacity: 0;
-            transition: opacity 1.5s ease-in;
-            visibility: hidden; /* クリック判定などを消すため */
+        /* 共通変数：オープニングのテキスト色などを定義 */
+        :root {
+            /* ★ご要望により元の25秒に戻しました★ */
+            --intro-duration: 25s; 
+            
+            --main-serif-font: 'Noto Serif JP', serif;
+            --main-sans-font: 'Noto Sans JP', sans-serif;
+            --text-color: #4a4a4a; /* シックな濃いグレー */
+            --accent-color: #c4a3bf; /* 落ち着いたくすみピンク（キュートさの演出） */
+            --bg-color: #fcfaf8; /* 優しいオフホワイト */
         }
-        /* フェードイン用クラス */
-        #main-content.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-    </style>
 
-    <style>
-        /* --- オープニング専用スタイル --- */
+        /* オープニング画面のコンテナ */
         #splash-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #ffffff;
-            z-index: 9999; /* 最前面に配置 */
+            background-color: var(--bg-color);
+            z-index: 9999;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: opacity 1s ease-out, visibility 1s;
+            /* visibilityの遷移を遅らせて完全にフェードアウトしてから非表示にする */
+            transition: opacity 1.5s ease-in-out, visibility 0s linear 1.5s;
         }
 
-        /* アニメーション終了後に適用するクラス（非表示） */
+        /* アニメーション終了後に適用（非表示） */
         #splash-screen.hidden {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
         }
 
-        :root {
-            /* ★調整ポイント: アニメーション時間を5秒に短縮 (元は25s) */
-            --intro-duration: 5s; 
-            
-            --intro-font: 'Noto Serif JP', serif;
-            --intro-text-color: #4a4a4a;
-        }
-
-        /* クラス名の競合を防ぐため、.card を .intro-card に変更 */
+        /* アニメーション内部の設定（元のコードを維持） */
         .intro-card {
             background-color: transparent;
             width: 100%;
@@ -99,50 +65,49 @@
         }
         
         .outline-group {
-            animation: parentFade var(--intro-duration) linear forwards; /* forwardsで最後の状態を維持 */
+            /* 最後はフェードアウトした状態を維持 */
+            animation: parentFade var(--intro-duration) linear forwards;
         }
 
         .outline-text {
-            font-family: var(--intro-font);
+            font-family: var(--main-serif-font);
             font-size: 90px;
             font-weight: 900;
             text-anchor: start;
         }
 
         .outline-text tspan {
-            fill: var(--intro-text-color);
+            fill: var(--text-color);
             fill-opacity: 0;
-            stroke: var(--intro-text-color);
+            stroke: var(--text-color);
             stroke-width: 1px;
             stroke-dasharray: 600;
             stroke-dashoffset: 600;
             animation-duration: var(--intro-duration);
             animation-timing-function: linear;
-            animation-iteration-count: 1; /* 1回だけ実行 */
+            animation-iteration-count: 1;
             animation-fill-mode: forwards;
         }
 
         .border-line {
             fill: none;
-            stroke: var(--intro-text-color);
+            stroke: var(--text-color);
             stroke-width: 1px;
             stroke-dasharray: 1200;
             stroke-dashoffset: 1200;
-            animation: borderDraw var(--intro-duration) linear 1;
-            animation-fill-mode: forwards;
+            animation: borderDraw var(--intro-duration) linear 1 forwards;
         }
 
         .ripple-circle {
             fill: none;
-            stroke: var(--intro-text-color);
+            stroke: var(--text-color);
             stroke-width: 2px;
             opacity: 0;
             transform-origin: center;
-            animation: rippleEffect var(--intro-duration) ease-out 1;
-            animation-fill-mode: forwards;
+            animation: rippleEffect var(--intro-duration) ease-out 1 forwards;
         }
 
-        /* アニメーション割り当て */
+        /* アニメーション割り当て (省略せず全て記述) */
         .outline-text tspan:nth-child(1) { animation-name: char01; }
         .outline-text tspan:nth-child(2) { animation-name: char02; }
         .outline-text tspan:nth-child(3) { animation-name: char03; }
@@ -158,22 +123,22 @@
         .outline-text tspan:nth-child(13) { animation-name: char13; }
         .outline-text tspan:nth-child(14) { animation-name: char14; }
 
-        /* キーフレーム (比率はそのまま、時間は変数のdurationに依存) */
-        @keyframes char01 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        /* (長くなるため簡略化して共通化できる部分はまとめましたが、元の動きを再現するためそのまま列挙します) */
-        @keyframes char02 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char03 { 0%, 2% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char04 { 0%, 4% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char05 { 0%, 4% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char06 { 0%, 6% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char07 { 0%, 8% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char08 { 0%, 8% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char09 { 0%, 10% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char10 { 0%, 12% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char11 { 0%, 12% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char12 { 0%, 14% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char13 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        @keyframes char14 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        /* キーフレーム定義 (元の25秒基準の比率) */
+        @keyframes char01 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 8% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char02 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 8% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char03 { 0%, 2% { stroke-dashoffset: 600; fill-opacity: 0; } 10% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char04 { 0%, 4% { stroke-dashoffset: 600; fill-opacity: 0; } 12% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char05 { 0%, 4% { stroke-dashoffset: 600; fill-opacity: 0; } 12% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char06 { 0%, 6% { stroke-dashoffset: 600; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        
+        @keyframes char07 { 0%, 8% { stroke-dashoffset: 600; fill-opacity: 0; } 16% { stroke-dashoffset: 0; fill-opacity: 0; } 20% { stroke-dashoffset: 0; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char08 { 0%, 8% { stroke-dashoffset: 600; fill-opacity: 0; } 16% { stroke-dashoffset: 0; fill-opacity: 0; } 20% { stroke-dashoffset: 0; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char09 { 0%, 10% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 0; } 20% { stroke-dashoffset: 0; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char10 { 0%, 12% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { stroke-dashoffset: 0; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char11 { 0%, 12% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { stroke-dashoffset: 0; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char12 { 0%, 14% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { fill-opacity: 0; } 22% { stroke-dashoffset: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char13 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes char14 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
 
         @keyframes borderDraw {
             0%, 30% { stroke-dashoffset: 1200; opacity: 1; }
@@ -187,11 +152,149 @@
             100% { r: 150px; opacity: 0; stroke-width: 0; }
         }
 
-        /* 最後のフェードアウト: 90%あたりから消し始めるように調整 */
+        /* フェードアウト: 95%あたりから消し始める */
         @keyframes parentFade {
-            0%, 80% { opacity: 1; }
+            0%, 95% { opacity: 1; }
             100% { opacity: 0; }
         }
+    </style>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: var(--main-sans-font);
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        /* 初期状態：非表示 */
+        #main-content {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 2s ease-in-out;
+        }
+        /* 表示状態 */
+        #main-content.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* ヘッダー */
+        .site-header {
+            padding: 3rem 0;
+            text-align: center;
+        }
+        .site-title {
+            font-family: var(--main-serif-font);
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            margin: 0;
+        }
+        .site-subtitle {
+            font-family: var(--main-serif-font);
+            font-size: 1rem;
+            color: var(--accent-color);
+            margin-top: 0.5rem;
+        }
+
+        /* 猫グリッドレイアウト */
+        .cat-grid {
+            display: grid;
+            /* 3列、2列の自動調整 */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+            padding: 2rem 0 5rem;
+        }
+
+        /* 猫カードのデザイン（シック＆キュート） */
+        .cat-card {
+            background: #fff;
+            border: 1px solid #eee;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ホバー時のエフェクト：少し浮き上がり、シックな影をつける */
+        .cat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border-color: var(--accent-color);
+        }
+
+        /* オープニングの波紋を意識した装飾（ホバー時） */
+        .cat-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border: 1px solid var(--accent-color);
+            border-radius: 50%;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease-out;
+        }
+        .cat-card:hover::after {
+            width: 200px;
+            height: 200px;
+            opacity: 0.2;
+        }
+
+        .cat-image-frame {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 1.5rem;
+            border-radius: 50%; /* 円形に切り抜き */
+            overflow: hidden;
+            border: 3px solid var(--bg-color);
+            box-shadow: 0 0 0 1px var(--text-color); /* 二重線風の枠 */
+        }
+
+        .cat-image-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .cat-card:hover .cat-image-frame img {
+            transform: scale(1.1);
+        }
+
+        .cat-name {
+            font-family: var(--main-serif-font);
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem;
+            color: var(--text-color);
+        }
+        
+        .cat-desc {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #7a7a7a;
+        }
+
+        /* フッター */
+        .site-footer {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid #eee;
+            font-size: 0.8rem;
+            color: #aaa;
+            font-family: var(--main-serif-font);
+        }
+
     </style>
 </head>
 <body>
@@ -202,26 +305,11 @@
                 <g class="outline-group">
                     <path class="border-line" d="M 40 30 L 945 30 L 945 280" />
                     <path class="border-line" d="M 945 280 L 40 280 L 40 30" />
-
                     <circle class="ripple-circle" cx="40" cy="30" r="0" />
                     <circle class="ripple-circle" cx="945" cy="280" r="0" />
-
                     <text x="60" y="130" class="outline-text">
-                        <tspan>風</tspan>
-                        <tspan>花</tspan>
-                        <tspan style="font-size: 81px;">と</tspan>
-                        <tspan>水</tspan>
-                        <tspan>月</tspan>
-                        <tspan style="font-size: 81px;">と</tspan>
-                        
-                        <tspan x="60" dy="120">蒼</tspan>
-                        <tspan>泉</tspan>
-                        <tspan style="font-size: 81px;">と</tspan>
-                        <tspan>灯</tspan>
-                        <tspan>莉</tspan>
-                        <tspan style="font-size: 81px;">と</tspan>
-                        <tspan>咲</tspan>
-                        <tspan>花</tspan>
+                        <tspan>風</tspan><tspan>花</tspan><tspan style="font-size: 81px;">と</tspan><tspan>水</tspan><tspan>月</tspan><tspan style="font-size: 81px;">と</tspan>
+                        <tspan x="60" dy="120">蒼</tspan><tspan>泉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 81px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
                     </text>
                 </g>
             </svg>
@@ -229,84 +317,60 @@
     </div>
 
     <div id="main-content">
-        <header class="header">
-            <div class="container header-inner">
-                <a href="index.html" class="logo">Global Innovate</a>
-                <nav class="nav">
-                    <ul class="nav-list">
-                        <li><a href="index.html">Home</a></li>
-                        <li><a href="about.html">About Us</a></li>
-                        <li><a href="#">Services</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#" class="btn-primary">Contact</a></li>
-                    </ul>
-                </nav>
+        <header class="site-header">
+            <div class="container">
+                <h1 class="site-title">Chaton Chic</h1>
+                <p class="site-subtitle">気品ある、愛らしい猫たちとの出会い。</p>
             </div>
         </header>
 
-        <section class="hero">
-            <div class="hero-image">
-                <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80" alt="モダンなオフィスビル">
-            </div>
-            <div class="container hero-content">
-                <h1 class="hero-title">テクノロジーで、<br>世界をよりシンプルに。</h1>
-                <p class="hero-text">私たちは最先端の技術とデザイン思考で、<br>企業のデジタルトランスフォーメーションを支援します。</p>
-                <a href="about.html" class="btn-text">私たちのミッションを見る <span class="arrow">→</span></a>
-            </div>
-        </section>
+        <main class="container">
+            <div class="cat-grid">
+                <article class="cat-card">
+                    <div class="cat-image-frame">
+                        <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&h=400&q=80" alt="ロシアンブルーの猫">
+                    </div>
+                    <h2 class="cat-name">Luna (ルナ)</h2>
+                    <p class="cat-desc">エメラルドの瞳を持つロシアンブルー。静寂を愛する、物静かで知的なレディ。月の光のような銀色の毛並みが自慢。</p>
+                </article>
+                
+                <article class="cat-card">
+                    <div class="cat-image-frame">
+                        <img src="https://images.unsplash.com/photo-1573865526739-1065ae16447b?auto=format&fit=crop&w=400&h=400&q=80" alt="黒猫">
+                    </div>
+                    <h2 class="cat-name">Noir (ノワール)</h2>
+                    <p class="cat-desc">漆黒の毛並みが美しいボンベイ。影のように寄り添う甘えん坊で、喉を鳴らす音は誰よりも大きい。</p>
+                </article>
+                
+                <article class="cat-card">
+                    <div class="cat-image-frame">
+                        <img src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=400&h=400&q=80" alt="スコティッシュフォールド">
+                    </div>
+                    <h2 class="cat-name">Maron (マロン)</h2>
+                    <p class="cat-desc">垂れた耳がチャームポイントのスコティッシュフォールド。おっとりとした性格で、日向ぼっこが何よりも好き。</p>
+                </article>
 
-        <section class="section section-news">
+                <article class="cat-card">
+                    <div class="cat-image-frame">
+                        <img src="https://images.unsplash.com/photo-1612904370720-74f9b5598fb5?auto=format&fit=crop&w=400&h=400&q=80" alt="白猫">
+                    </div>
+                    <h2 class="cat-name">Blanc (ブラン)</h2>
+                    <p class="cat-desc">雪のような純白のターキッシュアンゴラ。気位が高そうに見えて、実は遊び好き。羽のおもちゃには目がない。</p>
+                </article>
+                
+                <article class="cat-card">
+                    <div class="cat-image-frame">
+                        <img src="https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=400&h=400&q=80" alt="ベンガル猫">
+                    </div>
+                    <h2 class="cat-name">Leo (レオ)</h2>
+                    <p class="cat-desc">野生的なヒョウ柄を持つベンガル。好奇心旺盛で活発。部屋中を駆け回る小さな冒険家。</p>
+                </article>
+            </div>
+        </main>
+
+        <footer class="site-footer">
             <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">Latest News</h2>
-                </div>
-                <ul class="news-list">
-                    <li class="news-item">2024.05.20 [Press] シリーズBラウンドでの資金調達完了のお知らせ</li>
-                    <li class="news-item">2024.04.15 [Event] Global Tech Summit 2024に弊社代表が登壇します</li>
-                </ul>
-            </div>
-        </section>
-
-        <section class="section section-services bg-gray">
-            <div class="container">
-                <h2 class="section-title">Our Services</h2>
-                <div class="grid-3">
-                    <article class="card">
-                        <div class="card-img">
-                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80" alt="データ分析">
-                        </div>
-                        <div class="card-body">
-                            <h3>Data Analytics</h3>
-                            <p>膨大なデータから価値あるインサイトを抽出します。</p>
-                        </div>
-                    </article>
-                    <article class="card">
-                        <div class="card-img">
-                            <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="セキュリティ">
-                        </div>
-                        <div class="card-body">
-                            <h3>Cyber Security</h3>
-                            <p>企業の資産と信頼を強固に守ります。</p>
-                        </div>
-                    </article>
-                    <article class="card">
-                        <div class="card-img">
-                            <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=800&q=80" alt="コンサルティング">
-                        </div>
-                        <div class="card-body">
-                            <h3>DX Consulting</h3>
-                            <p>組織のデジタル化をトータルサポート。</p>
-                        </div>
-                    </article>
-                </div>
-            </div>
-        </section>
-
-        <footer class="footer">
-            <div class="container footer-inner">
-                <div class="copyright">
-                    &copy; 2024 Global Innovate Inc. All Rights Reserved.
-                </div>
+                &copy; 2024 Chaton Chic. All rights reserved.
             </div>
         </footer>
     </div>
@@ -316,18 +380,17 @@
             const splash = document.getElementById('splash-screen');
             const mainContent = document.getElementById('main-content');
             
-            // アニメーション設定時間 (CSSの --intro-duration と合わせる)
-            // 少し余裕を持たせて切り替える (5000ms = 5秒)
-            const animationDuration = 5000;
+            // ★ここも25秒 (25000ms) に戻しています★
+            // CSSのアニメーション終了とタイミングを合わせる
+            const animationDuration = 25000;
 
             setTimeout(() => {
-                // アニメーション画面をフェードアウト
+                // アニメーション画面をゆっくりフェードアウト
                 splash.classList.add('hidden');
                 
-                // 本編をフェードイン
+                // 本編をゆっくりフェードイン
                 mainContent.classList.add('visible');
 
-                // 完全に消えたらDOMから削除してもよいが、今回は非表示のまま
             }, animationDuration);
         });
     </script>
