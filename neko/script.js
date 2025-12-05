@@ -4,22 +4,22 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('loaded');
     }, 100);
 
-    // リンククリック時のフェードアウト
+    // リンククリック時のフェードアウト処理
     document.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', e => {
-            // 他ページへの遷移のみインターセプト
             const href = link.getAttribute('href');
-            if (href && href !== '#' && !href.startsWith('http')) {
+            // 外部リンクやJS無効リンクは除外
+            if (href && href !== '#' && !href.startsWith('http') && !link.classList.contains('disabled')) {
                 e.preventDefault();
                 document.body.classList.remove('loaded');
                 setTimeout(() => {
                     window.location.href = href;
-                }, 800); // CSSのtransition時間と合わせる
+                }, 800);
             }
         });
     });
 
-    // 文字・ブロックのアニメーション開始
+    // アニメーション開始トリガー
     setTimeout(() => {
         // 物語ページのブロック表示
         const blocks = document.querySelectorAll('.fade-in-block');
@@ -27,38 +27,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 目次ページの文字表示
         const chars = document.querySelectorAll('.char-base');
-        let d = 0;
-        chars.forEach(c => {
-            setTimeout(() => c.classList.add('visible'), d);
-            d += 20;
+        let delay = 0;
+        const delayIncrement = 50;
+
+        chars.forEach((char, index) => {
+            setTimeout(() => {
+                char.classList.add('visible');
+                // 全文字表示後にリンクを有効化
+                if (index === chars.length - 1) {
+                    setTimeout(activateLinks, 500);
+                }
+            }, delay);
+            delay += delayIncrement;
         });
     }, 500);
 
-    // 背景アニメーション
+    // 背景Canvas開始
     initBackgroundCanvas();
 });
 
-// 文字分割処理（目次用）
+// 目次リンクの有効化
+function activateLinks() {
+    const links = document.querySelectorAll('.toc-link');
+    links.forEach(link => {
+        link.classList.add('active');
+    });
+}
+
+// 目次用テキスト分割処理
 const splitTextElements = () => {
     const split = (el, cls) => {
-        if(el.children.length){ Array.from(el.children).forEach(c=>split(c,cls)); return; }
-        const txt = el.textContent.trim(); if(!txt) return;
-        el.textContent='';
+        if(el.children.length){
+            Array.from(el.children).forEach(c => split(c, cls));
+            return;
+        }
+        const txt = el.textContent.trim();
+        if(!txt) return;
+        
+        el.textContent = '';
         txt.split('').forEach(c => {
             const s = document.createElement('span');
-            s.textContent = c; s.classList.add('char-base', cls);
+            s.textContent = c;
+            s.classList.add('char-base', cls);
             el.appendChild(s);
         });
     };
-    document.querySelectorAll('.column-top .line').forEach(l=>split(l,'char-up'));
-    document.querySelectorAll('.toc-link span').forEach(l=>split(l,'char-down'));
+    document.querySelectorAll('.column-top .line').forEach(l => split(l, 'char-up'));
+    document.querySelectorAll('.column-bottom .line').forEach(l => {
+        const link = l.querySelector('.toc-link');
+        if (link) split(link, 'char-down');
+        else split(l, 'char-down');
+    });
 };
-// 実行
-if(document.querySelector('.toc-writing-area')) {
+
+// 目次ページ判定
+if(document.querySelector('.writing-area')) {
     splitTextElements();
 }
 
-// 物語ページのスクロール位置初期化
+// 物語スクロール初期位置調整（右端スタート）
 const storyContainer = document.getElementById('scroll-container');
 if(storyContainer) {
     setTimeout(() => {
@@ -66,6 +93,7 @@ if(storyContainer) {
     }, 100);
 }
 
+// 背景アニメーション
 function initBackgroundCanvas() {
     const cvs = document.getElementById('bg-canvas');
     if(!cvs) return;

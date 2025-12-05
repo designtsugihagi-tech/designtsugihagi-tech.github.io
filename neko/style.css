@@ -26,12 +26,12 @@ body {
     position: relative;
     line-height: 2.2;
     letter-spacing: 0.15em;
-    opacity: 0; /* 初期状態は非表示（フェードイン用） */
+    opacity: 0;
     transition: opacity 1s ease;
 }
 
 body.loaded {
-    opacity: 1; /* 読み込み完了後に表示 */
+    opacity: 1;
 }
 
 /* 背景Canvas */
@@ -47,9 +47,9 @@ body.loaded {
 }
 
 /* === 目次 (corridor.html) 用スタイル === */
-.toc-container {
-    width: 100%;
-    height: 100%;
+.container {
+    width: 100vw;
+    height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -57,70 +57,78 @@ body.loaded {
     z-index: 1;
 }
 
-.toc-writing-area {
+.writing-area {
     writing-mode: vertical-rl;
     text-orientation: upright;
-    height: 90vh;
-    width: 90vw;
+    aspect-ratio: 16 / 9;
+    width: auto;
+    height: auto;
+    max-width: 100vw;
+    max-height: 100vh;
+    min-width: 0;
+    min-height: 0;
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 10vmin;
-    padding: 0;
-    margin: auto;
+    gap: 6rem;
+    box-sizing: border-box;
+    padding: 2rem;
 }
 
 .column {
     display: flex;
     flex-direction: column;
+    gap: 1.5rem;
     justify-content: center;
 }
 
-.column-top { gap: 2.5vmin; align-items: flex-end; }
-.column-bottom { gap: 3vmin; align-items: flex-start; }
+.column-top { align-items: flex-end; }
+.column-bottom { align-items: flex-start; }
 
 .line {
-    font-size: clamp(11px, 2.2vmin, 24px);
+    font-size: clamp(1rem, 2vh, 1.5rem);
+    letter-spacing: 0.2em;
+    line-height: 1;
     white-space: nowrap;
-    line-height: 1.2;
 }
 
+/* 目次リンクスタイル */
 .toc-link {
     text-decoration: none;
     color: var(--link-color);
     position: relative;
-    cursor: pointer;
+    cursor: default;
+    pointer-events: none;
     transition: color 0.3s;
-    padding: 0;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    vertical-align: top;
-}
-
-.chapter-prefix {
+    padding: 5px 0;
     display: inline-block;
-    margin-bottom: 0.8em;
-    font-size: 0.9em;
-    color: var(--sub-text-color);
 }
 
-.toc-link:hover { color: var(--line-color); }
-.toc-link::after {
+.toc-link.active {
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.toc-link.active:hover { color: var(--line-color); }
+
+.toc-link.active::after {
     content: '';
     position: absolute;
     top: 0;
-    right: -10px;
+    right: -12px;
+    left: auto;
     width: 1px;
     height: 100%;
     background-color: var(--line-color);
     transform: scaleY(0);
     transform-origin: top;
-    transition: transform 0.4s ease;
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.toc-link:hover::after { transform: scaleY(1); }
 
-/* === 物語ページ用スタイル === */
+.toc-link.active:hover::after { transform: scaleY(1); }
+
+/* === 物語ページ (各章) 用スタイル === */
 .story-view {
     width: 100%;
     height: 100%;
@@ -271,24 +279,49 @@ p {
 }
 .next-chapter-btn:hover { background-color: var(--line-color); color: #fff; }
 
+/* アニメーション */
 .fade-in-block, .char-base {
     opacity: 0;
     transition: 1.5s ease;
 }
-.fade-in-block.visible, .char-base.visible {
+.fade-in-block.visible {
     opacity: 1;
+    transform: translateY(0);
 }
 .fade-in-block { transform: translateY(10px); }
-.fade-in-block.visible { transform: translateY(0); }
-.char-up { transform: translateY(15px); }
+
+/* 文字アニメーション用 */
+.char-base {
+    display: inline-block;
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.char-base.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
 .char-down { transform: translateY(-15px); }
-.char-base.visible { transform: translateY(0); }
+.char-up { transform: translateY(15px); }
 
 @media (max-width: 768px) {
     :root { --nav-width: 50px; }
-    .toc-writing-area { height: 90vh; width: 90vw; flex-direction: row; gap: 5vmin; }
-    .column { gap: 1.5vmin; }
-    .chapter-prefix { margin-bottom: 0.5em; font-size: 0.8em; }
+    
+    /* 目次レスポンシブ */
+    .writing-area {
+        aspect-ratio: unset;
+        width: 100%;
+        height: 100%;
+        padding: 1rem 0.5rem;
+        flex-direction: row;
+        justify-content: center;
+        gap: 1.5rem;
+    }
+    .column { height: auto; flex-grow: 0; gap: 0.8rem; }
+    .column-top { align-self: flex-start; align-items: flex-start; }
+    .column-bottom { align-self: flex-end; align-items: flex-end; }
+    .line { font-size: 0.85rem; margin: 0 0.1rem; line-height: 1.4; }
+    .toc-link { padding: 2px 0; }
+
+    /* 物語レスポンシブ */
     .side-nav { gap: 1.5rem; }
     .nav-item { font-size: 0.8rem; padding: 0.5rem 2px; }
     .story-scroll-container { padding-right: calc(var(--nav-width) + 2rem); }
