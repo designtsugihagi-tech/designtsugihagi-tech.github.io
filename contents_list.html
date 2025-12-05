@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>目次 | 記憶の回廊</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #fcfaf8;
+            --text-color: #333;
+            --link-color: #4a4a4a;
+            --accent-color: #c4a3bf;
+            /* 落ち着いた暗めの水色 */
+            --line-color: #68899e;
+            --font-family: 'Noto Serif JP', serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 縦書きコンテナ */
+        .writing-area {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            aspect-ratio: 16 / 9;
+            width: auto;
+            height: auto;
+            max-width: 100vw;
+            max-height: 100vh;
+            min-width: 0;
+            min-height: 0;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 6rem;
+            box-sizing: border-box;
+            padding: 2rem;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            justify-content: center;
+        }
+
+        .column-top {
+            align-items: flex-end;
+        }
+
+        .column-bottom {
+            align-items: flex-start;
+        }
+
+        .line {
+            font-size: clamp(1rem, 2vh, 1.5rem);
+            letter-spacing: 0.2em;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        /* リンクスタイル */
+        .toc-link {
+            text-decoration: none;
+            color: var(--link-color);
+            position: relative;
+            cursor: default;
+            pointer-events: none;
+            transition: color 0.3s;
+            padding: 5px 0;
+            display: inline-block;
+        }
+
+        .toc-link.active {
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .toc-link.active:hover {
+            color: var(--line-color);
+        }
+        
+        /* ★右側に線が表示されるスタイルに戻しました */
+        .toc-link.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -12px; /* 文字の右側に配置 */
+            left: auto;
+            width: 1px;   /* 線の太さ */
+            height: 100%; /* テキストの長さに合わせる */
+            
+            background-color: var(--line-color);
+            
+            transform: scaleY(0); /* 最初は縦方向に縮めておく */
+            transform-origin: top; /* 上から伸びるように */
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); /* すっと伸びる動き */
+        }
+        
+        .toc-link.active:hover::after {
+            transform: scaleY(1);
+        }
+
+        /* Gemini生成ボタンのスタイル */
+        .ai-btn {
+            background: none;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            font-family: var(--font-family);
+            font-size: 1rem;
+            padding: 0.8rem 0.5rem;
+            cursor: pointer;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            transition: all 0.3s;
+            border-radius: 4px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .ai-btn.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .ai-btn:hover {
+            background-color: var(--accent-color);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(196, 163, 191, 0.5);
+        }
+
+        /* 生成結果モーダル */
+        #oracle-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(252, 250, 248, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 100;
+        }
+
+        #oracle-modal.active {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s;
+        }
+
+        #oracle-modal.closing {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in 1.5s, visibility 0s linear 2s;
+            pointer-events: none;
+        }
+
+        .oracle-content {
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            font-size: clamp(1.2rem, 4vw, 1.6rem);
+            letter-spacing: 0.3em;
+            color: var(--text-color);
+            width: 90%;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 3rem;
+        }
+
+        .oracle-line {
+            display: inline-block;
+            white-space: nowrap;
+            min-height: 1em;
+        }
+
+        .oracle-content span {
+            display: inline-block;
+            transition: opacity 0.1s;
+        }
+
+        @keyframes falling-text {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(calc(var(--rotate-dir) * 360deg));
+                opacity: 0;
+            }
+        }
+
+        #oracle-modal.closing .oracle-content span {
+            animation: falling-text 1s ease-in forwards;
+        }
+        
+        .close-note {
+            position: absolute;
+            bottom: 2rem;
+            font-size: 0.8rem;
+            opacity: 0.6;
+            writing-mode: horizontal-tb;
+            transition: opacity 0.3s;
+        }
+
+        #oracle-modal.closing .close-note {
+            opacity: 0;
+        }
+
+        .loading-sparkle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            animation: sparkle 1s infinite ease-in-out;
+            display: none;
+        }
+        #oracle-modal.loading .loading-sparkle {
+            display: block;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.5); opacity: 1; }
+        }
+
+        .char-base {
+            opacity: 0;
+            display: inline-block;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .char-base.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .char-down { transform: translateY(-15px); }
+        .char-up { transform: translateY(15px); }
+
+        @media (max-width: 768px) {
+            .writing-area {
+                aspect-ratio: unset;
+                width: 100%;
+                height: 100%;
+                padding: 2rem 1rem;
+                flex-direction: row;
+                justify-content: center;
+                gap: 4rem;
+            }
+
+            .column {
+                height: auto;
+                flex-grow: 0;
+            }
+
+            .column-top {
+                align-self: flex-start;
+                align-items: flex-start;
+            }
+
+            .column-bottom {
+                align-self: flex-end;
+                align-items: flex-end;
+            }
+
+            .line {
+                font-size: 1rem;
+                margin: 0 0.3rem;
+            }
+            
+            .oracle-content {
+                gap: 2rem;
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="writing-area">
+            
+            <!-- 上段 -->
+            <div class="column column-top">
+                <div class="line">風に揺れる一輪の花</div>
+                <div class="line">永遠の夢を囁く</div>
+                <div class="line">水面に浮かぶ青き月</div>
+                <div class="line">永久に変わらぬ輝き</div>
+                <div class="line">蒼き泉の深淵に</div>
+                <div class="line">秘めたる想いを沈め</div>
+                <div class="line">灯火が照らす莉の白</div>
+                <div class="line">帰るべき場所を示す</div>
+                <div class="line">咲き誇る花は散らず</div>
+                <div class="line">記憶の回廊を彩る</div>
+            </div>
+
+            <!-- 下段 -->
+            <div class="column column-bottom">
+                <div class="line"><a href="#intro" class="toc-link">【序章】 黎明の刻</a></div>
+                <div class="line"><a href="#chapter1" class="toc-link">第一章 花信風</a></div>
+                <div class="line"><a href="#chapter2" class="toc-link">第二章 水鏡の空</a></div>
+                <div class="line"><a href="#chapter3" class="toc-link">第三章 蒼き旋律</a></div>
+                <div class="line"><a href="#chapter4" class="toc-link">第四章 灯火の道</a></div>
+                <div class="line"><a href="#chapter5" class="toc-link">第五章 咲き誇る</a></div>
+                <div class="line"><a href="#epilogue" class="toc-link">【終章】 永遠の環</a></div>
+                <!-- Gemini機能ボタン -->
+                <div class="line" style="margin-top: 1rem;">
+                    <button id="generate-btn" class="ai-btn">記憶の欠片を探す</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- モーダル -->
+    <div id="oracle-modal">
+        <div class="loading-sparkle"></div>
+        <div id="oracle-text" class="oracle-content"></div>
+        <div class="close-note">Click anywhere to close</div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const links = document.querySelectorAll('.toc-link');
+            const generateBtn = document.getElementById('generate-btn');
+            const modal = document.getElementById('oracle-modal');
+            const oracleText = document.getElementById('oracle-text');
+            
+            const splitText = (element, animationClass) => {
+                if (element.children.length > 0 && element.children[0].tagName === 'A') {
+                    splitText(element.children[0], animationClass);
+                    return;
+                }
+                const text = element.textContent;
+                element.textContent = '';
+                text.split('').forEach(char => {
+                    const span = document.createElement('span');
+                    span.textContent = char;
+                    span.classList.add('char-base', animationClass);
+                    element.appendChild(span);
+                });
+            };
+
+            document.querySelectorAll('.column-top .line').forEach(line => splitText(line, 'char-up'));
+            document.querySelectorAll('.column-bottom .line').forEach(line => {
+                if (!line.querySelector('button')) {
+                    splitText(line, 'char-down');
+                }
+            });
+
+            const allChars = document.querySelectorAll('.char-base');
+            let delay = 0;
+            const delayIncrement = 50;
+
+            allChars.forEach((char, index) => {
+                setTimeout(() => {
+                    char.classList.add('visible');
+                    if (index === allChars.length - 1) {
+                        setTimeout(activateUI, 500);
+                    }
+                }, delay);
+                delay += delayIncrement;
+            });
+
+            let oraclePromise = null;
+
+            async function fetchOracleText() {
+                const apiKey = "";
+                const genAI = new GoogleGenerativeAI(apiKey);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
+
+                const prompt = `日本の幻想的な小説のような、美しく詩的な文章を作成してください。
+                
+                【重要なお願い】
+                ・出力は「詩の本文のみ」にしてください。
+                ・「テーマ：〇〇」や「（〇〇文字）」、「【別案】」などの注釈は絶対に入れないでください。
+                ・挨拶や解説も不要です。
+                
+                条件:
+                1. テーマは「猫」「月」「風」「水」「記憶」のいずれかを含む。
+                2. 全体で20〜30文字程度の短い文章。
+                3. 必ず2行または3行に改行して区切ること。
+                4. 各行は短く、リズムを持たせること。
+                5. 縦書き表示に適した内容にすること。`;
+
+                try {
+                    const result = await model.generateContent(prompt);
+                    const response = await result.response;
+                    return response.text();
+                } catch (error) {
+                    console.error("Error:", error);
+                    return "風の便りが届きませんでした...";
+                }
+            }
+
+            function preloadOracle() {
+                oraclePromise = fetchOracleText();
+            }
+
+            function activateUI() {
+                links.forEach(link => {
+                    link.classList.add('active');
+                    
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        link.style.color = '#fff';
+                        link.style.textShadow = '0 0 10px #68899e';
+                        setTimeout(() => {
+                            link.style.color = '';
+                            link.style.textShadow = '';
+                        }, 300);
+                    });
+                });
+                
+                generateBtn.classList.add('visible');
+                preloadOracle();
+            }
+
+            generateBtn.addEventListener('click', async () => {
+                modal.classList.remove('closing');
+                modal.classList.add('active', 'loading');
+                oracleText.innerHTML = '';
+
+                let text = await oraclePromise;
+                
+                text = text.replace(/【.*?】/g, '')
+                           .replace(/（.*?）/g, '')
+                           .replace(/\(.*?\)/g, '')
+                           .replace(/テーマ：.*/g, '')
+                           .replace(/文字数：.*/g, '');
+                
+                text = text.split('\n').filter(line => line.trim() !== '').join('\n');
+
+                modal.classList.remove('loading');
+                typeWriter(text);
+                preloadOracle();
+            });
+
+            modal.addEventListener('click', () => {
+                if (modal.classList.contains('loading') || !modal.classList.contains('active') || modal.classList.contains('closing')) {
+                    return;
+                }
+
+                modal.classList.add('closing');
+                modal.classList.remove('active');
+
+                const chars = oracleText.querySelectorAll('span');
+                chars.forEach(char => {
+                    const randomDelay = Math.random() * 500;
+                    const randomRotateDir = Math.random() > 0.5 ? 1 : -1;
+                    char.style.animationDelay = `${randomDelay}ms`;
+                    char.style.setProperty('--rotate-dir', randomRotateDir);
+                });
+
+                setTimeout(() => {
+                    modal.classList.remove('closing');
+                    oracleText.innerHTML = '';
+                }, 2000);
+            });
+
+            function typeWriter(text) {
+                oracleText.innerHTML = '';
+                const lines = text.split('\n').filter(line => line.trim() !== '');
+                
+                let charTotalIndex = 0;
+
+                lines.forEach((lineText) => {
+                    const lineContainer = document.createElement('div');
+                    lineContainer.classList.add('oracle-line');
+                    
+                    const randomOffset = Math.floor(Math.random() * 8);
+                    lineContainer.style.marginTop = `${randomOffset}vh`;
+                    
+                    oracleText.appendChild(lineContainer);
+
+                    const chars = lineText.split('');
+                    chars.forEach((char) => {
+                        const span = document.createElement('span');
+                        span.textContent = char;
+                        span.style.opacity = 0;
+                        lineContainer.appendChild(span);
+
+                        setTimeout(() => {
+                            span.style.opacity = 1;
+                        }, charTotalIndex * 80);
+                        
+                        charTotalIndex++;
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
