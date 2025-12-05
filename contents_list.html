@@ -29,6 +29,20 @@
             overflow: hidden;
             height: 100vh;
             width: 100vw;
+            position: relative;
+        }
+
+        /* 背景アニメーション用Canvas */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* 背景色の上に表示されるよう調整済み */
+            z-index: 0; 
+            pointer-events: none;
+            opacity: 0.6; /* 初期の全体透明度 */
         }
 
         .container {
@@ -38,6 +52,8 @@
             justify-content: center;
             align-items: center;
             position: relative;
+            /* 背景より手前に表示 */
+            z-index: 1; 
         }
 
         /* 縦書きコンテナ */
@@ -53,7 +69,7 @@
             min-height: 0;
             flex-grow: 1;
             display: flex;
-            flex-direction: column; 
+            flex-direction: column;
             justify-content: center;
             gap: 6rem;
             box-sizing: border-box;
@@ -108,16 +124,14 @@
             content: '';
             position: absolute;
             top: 0;
-            right: -12px; /* 文字の右側に配置 */
+            right: -12px;
             left: auto;
-            width: 1px;   /* 線の太さ */
-            height: 100%; /* テキストの長さに合わせる */
-            
+            width: 1px;
+            height: 100%;
             background-color: var(--line-color);
-            
-            transform: scaleY(0); /* 最初は縦方向に縮めておく */
-            transform-origin: top; /* 上から伸びるように */
-            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1); /* すっと伸びる動き */
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         
         .toc-link.active:hover::after {
@@ -145,18 +159,15 @@
                 aspect-ratio: unset;
                 width: 100%;
                 height: 100%;
-                /* パディングを減らして表示領域を確保 */
                 padding: 1rem 0.5rem;
-                flex-direction: row; 
+                flex-direction: row;
                 justify-content: center;
-                /* 上下のブロック間隔を縮小 */
-                gap: 1.5rem; 
+                gap: 1.5rem;
             }
 
             .column {
                 height: auto;
                 flex-grow: 0;
-                /* 行間を詰める */
                 gap: 0.8rem;
             }
 
@@ -170,15 +181,12 @@
                 align-items: flex-end;
             }
 
-            .line { 
-                /* フォントサイズを小さくして全体を収める */
-                font-size: 0.85rem; 
+            .line {
+                font-size: 0.85rem;
                 margin: 0 0.1rem;
-                /* 行高も少し詰める */
                 line-height: 1.4;
             }
             
-            /* リンクのクリック領域調整 */
             .toc-link {
                 padding: 2px 0;
             }
@@ -186,6 +194,8 @@
     </style>
 </head>
 <body>
+    <!-- 背景アニメーション用のCanvas -->
+    <canvas id="bg-canvas"></canvas>
 
     <div class="container">
         <div class="writing-area">
@@ -219,10 +229,130 @@
     </div>
 
     <script>
+        // === 背景アニメーションのスクリプト（初期設定に戻す） ===
+        (function() {
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let width, height;
+            let lines = [];
+            
+            // 色の設定 (CSS変数の --line-color: #68899e に合わせる)
+            const baseColor = { r: 104, g: 137, b: 158 }; 
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            class FlowLine {
+                constructor() {
+                    this.init();
+                }
+
+                init() {
+                    // 右側、画面の高さの30%〜70%の位置から発生
+                    this.x = width + Math.random() * 100;
+                    this.y = height * (0.3 + Math.random() * 0.4);
+                    
+                    // 左下へ向かう速度（初期の速度設定）
+                    const speed = 1 + Math.random() * 1.5;
+                    this.vx = -speed * 1.5; // 左へ
+                    this.vy = speed * 1.0;  // 下へ
+
+                    this.life = 0;
+                    this.maxLife = 100 + Math.random() * 200;
+                    this.history = []; 
+                    this.historyMax = 20 + Math.random() * 30; 
+                    
+                    // 揺らぎのパラメータ
+                    this.angle = 0;
+                    this.angleSpeed = 0.02 + Math.random() * 0.03;
+                    this.amplitude = 0.5 + Math.random() * 1.5;
+                    
+                    // 線の太さ
+                    this.lineWidth = 0.5 + Math.random() * 1.5;
+                    // 透明度（初期の薄い設定）
+                    this.alpha = 0.1 + Math.random() * 0.3;
+                }
+
+                update() {
+                    this.life++;
+                    this.angle += this.angleSpeed;
+
+                    // ゆらぎ
+                    const waveX = Math.sin(this.angle) * this.amplitude;
+                    const waveY = Math.cos(this.angle * 0.8) * this.amplitude;
+
+                    this.x += this.vx + waveX;
+                    this.y += this.vy + waveY;
+
+                    // 軌跡
+                    this.history.push({ x: this.x, y: this.y });
+                    if (this.history.length > this.historyMax) {
+                        this.history.shift();
+                    }
+
+                    // リセット条件
+                    if (this.x < -100 || this.y > height + 100 || this.life > this.maxLife) {
+                        this.init();
+                    }
+                }
+
+                draw() {
+                    if (this.history.length < 2) return;
+
+                    ctx.beginPath();
+                    ctx.moveTo(this.history[0].x, this.history[0].y);
+                    
+                    for (let i = 1; i < this.history.length - 1; i++) {
+                        const xc = (this.history[i].x + this.history[i+1].x) / 2;
+                        const yc = (this.history[i].y + this.history[i+1].y) / 2;
+                        ctx.quadraticCurveTo(this.history[i].x, this.history[i].y, xc, yc);
+                    }
+                    ctx.lineTo(this.history[this.history.length-1].x, this.history[this.history.length-1].y);
+
+                    // フェードアウト
+                    let alpha = this.alpha;
+                    if (this.life < 20) alpha *= this.life / 20;
+                    if (this.life > this.maxLife - 20) alpha *= (this.maxLife - this.life) / 20;
+
+                    ctx.strokeStyle = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, ${alpha})`;
+                    ctx.lineWidth = this.lineWidth;
+                    ctx.lineCap = 'round';
+                    ctx.stroke();
+                }
+            }
+
+            // ラインの生成
+            const lineCount = 50;
+            for (let i = 0; i < lineCount; i++) {
+                const line = new FlowLine();
+                const preRun = Math.random() * 300;
+                for(let j=0; j<preRun; j++) line.update();
+                lines.push(line);
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+
+                lines.forEach(line => {
+                    line.update();
+                    line.draw();
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        })();
+
+        // === 既存のテキストアニメーション ===
         document.addEventListener('DOMContentLoaded', () => {
             const links = document.querySelectorAll('.toc-link');
             
-            // テキストを1文字ずつ分割してspanで囲む
             const splitText = (element, animationClass) => {
                 if (element.children.length > 0 && element.children[0].tagName === 'A') {
                     splitText(element.children[0], animationClass);
@@ -241,7 +371,6 @@
             document.querySelectorAll('.column-top .line').forEach(line => splitText(line, 'char-up'));
             document.querySelectorAll('.column-bottom .line').forEach(line => splitText(line, 'char-down'));
 
-            // アニメーション実行
             const allChars = document.querySelectorAll('.char-base');
             let delay = 0;
             const delayIncrement = 50;
@@ -249,7 +378,6 @@
             allChars.forEach((char, index) => {
                 setTimeout(() => {
                     char.classList.add('visible');
-                    // 最後のアニメーションが終わったらリンクを有効化
                     if (index === allChars.length - 1) {
                         setTimeout(activateLinks, 500);
                     }
@@ -268,8 +396,6 @@
                         setTimeout(() => {
                             link.style.color = '';
                             link.style.textShadow = '';
-                            // ここにページ遷移処理を追加可能
-                            // window.location.href = link.href;
                         }, 300);
                     });
                 });
