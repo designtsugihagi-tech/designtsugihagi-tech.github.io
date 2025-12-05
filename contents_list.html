@@ -53,7 +53,7 @@
             min-height: 0;
             flex-grow: 1;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; 
             justify-content: center;
             gap: 6rem;
             box-sizing: border-box;
@@ -103,7 +103,7 @@
             color: var(--line-color);
         }
         
-        /* ★右側に線が表示されるスタイルに戻しました */
+        /* 右側に線が表示されるスタイル */
         .toc-link.active::after {
             content: '';
             position: absolute;
@@ -190,10 +190,10 @@
             width: 90%;
             height: 80vh;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; 
             justify-content: center;
             align-items: flex-start;
-            gap: 3rem;
+            gap: 3rem; 
         }
 
         .oracle-line {
@@ -273,9 +273,9 @@
                 width: 100%;
                 height: 100%;
                 padding: 2rem 1rem;
-                flex-direction: row;
+                flex-direction: row; 
                 justify-content: center;
-                gap: 4rem;
+                gap: 4rem; 
             }
 
             .column {
@@ -293,12 +293,12 @@
                 align-items: flex-end;
             }
 
-            .line {
-                font-size: 1rem;
+            .line { 
+                font-size: 1rem; 
                 margin: 0 0.3rem;
             }
             
-            .oracle-content {
+            .oracle-content { 
                 gap: 2rem;
                 font-size: 1.4rem;
             }
@@ -397,7 +397,16 @@
             let oraclePromise = null;
 
             async function fetchOracleText() {
-                const apiKey = "";
+                // ★★★ 重要: ここにご自身のAPIキーを入力してください ★★★
+                const apiKey = "AIzaSyB0WVd3aVueGH0ga0fAX8BC4Z-iDkVbbSM"; 
+                // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+                
+                // ※ キーが空の場合はエラーになります
+                if (!apiKey || apiKey === "AIzaSyB0WVd3aVueGH0ga0fAX8BC4Z-iDkVbbSM" || apiKey === "") {
+                    console.error("APIキーが設定されていません。コード内の 'apiKey' 変数にGoogle Gemini APIキーを設定してください。");
+                    return "風の便りが届きませんでした・・・(APIキー未設定)";
+                }
+
                 const genAI = new GoogleGenerativeAI(apiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
 
@@ -420,8 +429,8 @@
                     const response = await result.response;
                     return response.text();
                 } catch (error) {
-                    console.error("Error:", error);
-                    return "風の便りが届きませんでした...";
+                    console.error("API Error:", error);
+                    return "風の便りが届きませんでした・・・";
                 }
             }
 
@@ -451,7 +460,7 @@
             generateBtn.addEventListener('click', async () => {
                 modal.classList.remove('closing');
                 modal.classList.add('active', 'loading');
-                oracleText.innerHTML = '';
+                oracleText.innerHTML = ''; 
 
                 let text = await oraclePromise;
                 
@@ -500,7 +509,7 @@
                     const lineContainer = document.createElement('div');
                     lineContainer.classList.add('oracle-line');
                     
-                    const randomOffset = Math.floor(Math.random() * 8);
+                    const randomOffset = Math.floor(Math.random() * 8); 
                     lineContainer.style.marginTop = `${randomOffset}vh`;
                     
                     oracleText.appendChild(lineContainer);
@@ -514,7 +523,7 @@
 
                         setTimeout(() => {
                             span.style.opacity = 1;
-                        }, charTotalIndex * 80);
+                        }, charTotalIndex * 80); 
                         
                         charTotalIndex++;
                     });
