@@ -139,20 +139,25 @@
         .char-down { transform: translateY(-15px); }
         .char-up { transform: translateY(15px); }
 
+        /* スマホ向けレスポンシブ調整 */
         @media (max-width: 768px) {
             .writing-area {
                 aspect-ratio: unset;
                 width: 100%;
                 height: 100%;
-                padding: 2rem 1rem;
+                /* パディングを減らして表示領域を確保 */
+                padding: 1rem 0.5rem;
                 flex-direction: row; 
                 justify-content: center;
-                gap: 4rem; 
+                /* 上下のブロック間隔を縮小 */
+                gap: 1.5rem; 
             }
 
             .column {
                 height: auto;
                 flex-grow: 0;
+                /* 行間を詰める */
+                gap: 0.8rem;
             }
 
             .column-top {
@@ -166,8 +171,16 @@
             }
 
             .line { 
-                font-size: 1rem; 
-                margin: 0 0.3rem;
+                /* フォントサイズを小さくして全体を収める */
+                font-size: 0.85rem; 
+                margin: 0 0.1rem;
+                /* 行高も少し詰める */
+                line-height: 1.4;
+            }
+            
+            /* リンクのクリック領域調整 */
+            .toc-link {
+                padding: 2px 0;
             }
         }
     </style>
