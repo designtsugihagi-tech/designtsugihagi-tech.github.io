@@ -124,135 +124,7 @@
             transform: scaleY(1);
         }
 
-        /* Gemini生成ボタンのスタイル */
-        .ai-btn {
-            background: none;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            font-family: var(--font-family);
-            font-size: 1rem;
-            padding: 0.8rem 0.5rem;
-            cursor: pointer;
-            writing-mode: vertical-rl;
-            text-orientation: upright;
-            transition: all 0.3s;
-            border-radius: 4px;
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .ai-btn.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .ai-btn:hover {
-            background-color: var(--accent-color);
-            color: #fff;
-            box-shadow: 0 0 10px rgba(196, 163, 191, 0.5);
-        }
-
-        /* 生成結果モーダル */
-        #oracle-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(252, 250, 248, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            z-index: 100;
-        }
-
-        #oracle-modal.active {
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.5s;
-        }
-
-        #oracle-modal.closing {
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.5s ease-in 1.5s, visibility 0s linear 2s;
-            pointer-events: none;
-        }
-
-        .oracle-content {
-            writing-mode: vertical-rl;
-            text-orientation: upright;
-            font-size: clamp(1.2rem, 4vw, 1.6rem);
-            letter-spacing: 0.3em;
-            color: var(--text-color);
-            width: 90%;
-            height: 80vh;
-            display: flex;
-            flex-direction: column; 
-            justify-content: center;
-            align-items: flex-start;
-            gap: 3rem; 
-        }
-
-        .oracle-line {
-            display: inline-block;
-            white-space: nowrap;
-            min-height: 1em;
-        }
-
-        .oracle-content span {
-            display: inline-block;
-            transition: opacity 0.1s;
-        }
-
-        @keyframes falling-text {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(calc(var(--rotate-dir) * 360deg));
-                opacity: 0;
-            }
-        }
-
-        #oracle-modal.closing .oracle-content span {
-            animation: falling-text 1s ease-in forwards;
-        }
-        
-        .close-note {
-            position: absolute;
-            bottom: 2rem;
-            font-size: 0.8rem;
-            opacity: 0.6;
-            writing-mode: horizontal-tb;
-            transition: opacity 0.3s;
-        }
-
-        #oracle-modal.closing .close-note {
-            opacity: 0;
-        }
-
-        .loading-sparkle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: var(--accent-color);
-            border-radius: 50%;
-            animation: sparkle 1s infinite ease-in-out;
-            display: none;
-        }
-        #oracle-modal.loading .loading-sparkle {
-            display: block;
-        }
-
-        @keyframes sparkle {
-            0%, 100% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.5); opacity: 1; }
-        }
-
+        /* 文字表示アニメーション用スタイル */
         .char-base {
             opacity: 0;
             display: inline-block;
@@ -297,11 +169,6 @@
                 font-size: 1rem; 
                 margin: 0 0.3rem;
             }
-            
-            .oracle-content { 
-                gap: 2rem;
-                font-size: 1.4rem;
-            }
         }
     </style>
 </head>
@@ -333,31 +200,16 @@
                 <div class="line"><a href="#chapter4" class="toc-link">第四章 灯火の道</a></div>
                 <div class="line"><a href="#chapter5" class="toc-link">第五章 咲き誇る</a></div>
                 <div class="line"><a href="#epilogue" class="toc-link">【終章】 永遠の環</a></div>
-                <!-- Gemini機能ボタン -->
-                <div class="line" style="margin-top: 1rem;">
-                    <button id="generate-btn" class="ai-btn">記憶の欠片を探す</button>
-                </div>
             </div>
 
         </div>
     </div>
 
-    <!-- モーダル -->
-    <div id="oracle-modal">
-        <div class="loading-sparkle"></div>
-        <div id="oracle-text" class="oracle-content"></div>
-        <div class="close-note">Click anywhere to close</div>
-    </div>
-
-    <script type="module">
-        import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
-
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const links = document.querySelectorAll('.toc-link');
-            const generateBtn = document.getElementById('generate-btn');
-            const modal = document.getElementById('oracle-modal');
-            const oracleText = document.getElementById('oracle-text');
             
+            // テキストを1文字ずつ分割してspanで囲む
             const splitText = (element, animationClass) => {
                 if (element.children.length > 0 && element.children[0].tagName === 'A') {
                     splitText(element.children[0], animationClass);
@@ -374,12 +226,9 @@
             };
 
             document.querySelectorAll('.column-top .line').forEach(line => splitText(line, 'char-up'));
-            document.querySelectorAll('.column-bottom .line').forEach(line => {
-                if (!line.querySelector('button')) {
-                    splitText(line, 'char-down');
-                }
-            });
+            document.querySelectorAll('.column-bottom .line').forEach(line => splitText(line, 'char-down'));
 
+            // アニメーション実行
             const allChars = document.querySelectorAll('.char-base');
             let delay = 0;
             const delayIncrement = 50;
@@ -387,59 +236,15 @@
             allChars.forEach((char, index) => {
                 setTimeout(() => {
                     char.classList.add('visible');
+                    // 最後のアニメーションが終わったらリンクを有効化
                     if (index === allChars.length - 1) {
-                        setTimeout(activateUI, 500);
+                        setTimeout(activateLinks, 500);
                     }
                 }, delay);
                 delay += delayIncrement;
             });
 
-            let oraclePromise = null;
-
-            async function fetchOracleText() {
-                // ★★★ 重要: ここにAI Studioで取得したAPIキーを入力してください ★★★
-                const apiKey = "AIzaSyB0WVd3aVueGH0ga0fAX8BC4Z-iDkVbbSM"; 
-                // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-                
-                if (!apiKey || apiKey === "AIzaSyB0WVd3aVueGH0ga0fAX8BC4Z-iDkVbbSM") {
-                    console.error("AIzaSyB0WVd3aVueGH0ga0fAX8BC4Z-iDkVbbSM");
-                    return "風の便りが届きませんでした・・・(APIキー未設定)";
-                }
-
-                const genAI = new GoogleGenerativeAI(apiKey);
-                
-                // ★重要: モデル名を一般公開用の 'gemini-1.5-flash' に変更しました
-                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-                const prompt = `日本の幻想的な小説のような、美しく詩的な文章を作成してください。
-                
-                【重要なお願い】
-                ・出力は「詩の本文のみ」にしてください。
-                ・「テーマ：〇〇」や「（〇〇文字）」、「【別案】」などの注釈は絶対に入れないでください。
-                ・挨拶や解説も不要です。
-                
-                条件:
-                1. テーマは「猫」「月」「風」「水」「記憶」のいずれかを含む。
-                2. 全体で20〜30文字程度の短い文章。
-                3. 必ず2行または3行に改行して区切ること。
-                4. 各行は短く、リズムを持たせること。
-                5. 縦書き表示に適した内容にすること。`;
-
-                try {
-                    const result = await model.generateContent(prompt);
-                    const response = await result.response;
-                    return response.text();
-                } catch (error) {
-                    console.error("API Error (Check Console for details):", error);
-                    return "風の便りが届きませんでした・・・";
-                }
-            }
-
-            function preloadOracle() {
-                oraclePromise = fetchOracleText();
-            }
-
-            function activateUI() {
+            function activateLinks() {
                 links.forEach(link => {
                     link.classList.add('active');
                     
@@ -450,83 +255,9 @@
                         setTimeout(() => {
                             link.style.color = '';
                             link.style.textShadow = '';
+                            // ここにページ遷移処理を追加可能
+                            // window.location.href = link.href;
                         }, 300);
-                    });
-                });
-                
-                generateBtn.classList.add('visible');
-                preloadOracle();
-            }
-
-            generateBtn.addEventListener('click', async () => {
-                modal.classList.remove('closing');
-                modal.classList.add('active', 'loading');
-                oracleText.innerHTML = ''; 
-
-                let text = await oraclePromise;
-                
-                text = text.replace(/【.*?】/g, '')
-                           .replace(/（.*?）/g, '')
-                           .replace(/\(.*?\)/g, '')
-                           .replace(/テーマ：.*/g, '')
-                           .replace(/文字数：.*/g, '');
-                
-                text = text.split('\n').filter(line => line.trim() !== '').join('\n');
-
-                modal.classList.remove('loading');
-                typeWriter(text);
-                preloadOracle();
-            });
-
-            modal.addEventListener('click', () => {
-                if (modal.classList.contains('loading') || !modal.classList.contains('active') || modal.classList.contains('closing')) {
-                    return;
-                }
-
-                modal.classList.add('closing');
-                modal.classList.remove('active');
-
-                const chars = oracleText.querySelectorAll('span');
-                chars.forEach(char => {
-                    const randomDelay = Math.random() * 500;
-                    const randomRotateDir = Math.random() > 0.5 ? 1 : -1;
-                    char.style.animationDelay = `${randomDelay}ms`;
-                    char.style.setProperty('--rotate-dir', randomRotateDir);
-                });
-
-                setTimeout(() => {
-                    modal.classList.remove('closing');
-                    oracleText.innerHTML = '';
-                }, 2000);
-            });
-
-            function typeWriter(text) {
-                oracleText.innerHTML = '';
-                const lines = text.split('\n').filter(line => line.trim() !== '');
-                
-                let charTotalIndex = 0;
-
-                lines.forEach((lineText) => {
-                    const lineContainer = document.createElement('div');
-                    lineContainer.classList.add('oracle-line');
-                    
-                    const randomOffset = Math.floor(Math.random() * 8); 
-                    lineContainer.style.marginTop = `${randomOffset}vh`;
-                    
-                    oracleText.appendChild(lineContainer);
-
-                    const chars = lineText.split('');
-                    chars.forEach((char) => {
-                        const span = document.createElement('span');
-                        span.textContent = char;
-                        span.style.opacity = 0;
-                        lineContainer.appendChild(span);
-
-                        setTimeout(() => {
-                            span.style.opacity = 1;
-                        }, charTotalIndex * 80); 
-                        
-                        charTotalIndex++;
                     });
                 });
             }
