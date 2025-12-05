@@ -397,18 +397,19 @@
             let oraclePromise = null;
 
             async function fetchOracleText() {
-                // ★★★ 重要: ここにご自身のAPIキーを入力してください ★★★
+                // ★★★ 重要: ここにAI Studioで取得したAPIキーを入力してください ★★★
                 const apiKey = "AIzaSyB0WVd3aVueGH0ga0fAX8BC4Z-iDkVbbSM"; 
                 // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
                 
-                // ※ キーが空の場合はエラーになります
-                if (!apiKey || apiKey === "AAIzaSyB0WVd3aVueGH0ga0fAX8BC4Z-iDkVbbSM" || apiKey === "") {
-                    console.error("APIキーが設定されていません。コード内の 'apiKey' 変数にGoogle Gemini APIキーを設定してください。");
+                if (!apiKey || apiKey === "AIzaSyB0WVd3aVueGH0ga0fAX8BC4Z-iDkVbbSM") {
+                    console.error("APIキーが設定されていません。");
                     return "風の便りが届きませんでした・・・(APIキー未設定)";
                 }
 
                 const genAI = new GoogleGenerativeAI(apiKey);
-                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
+                
+                // ★重要: モデル名を一般公開用の 'gemini-1.5-flash' に変更しました
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
                 const prompt = `日本の幻想的な小説のような、美しく詩的な文章を作成してください。
                 
@@ -429,7 +430,7 @@
                     const response = await result.response;
                     return response.text();
                 } catch (error) {
-                    console.error("API Error:", error);
+                    console.error("API Error (Check Console for details):", error);
                     return "風の便りが届きませんでした・・・";
                 }
             }
