@@ -1,31 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // ページロード時のフェードイン
-    setTimeout(() => {
-        document.body.classList.add('loaded');
-    }, 100);
+    setTimeout(() => document.body.classList.add('loaded'), 100);
 
-    // リンククリック時のフェードアウト処理
     document.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', e => {
             const href = link.getAttribute('href');
-            // 外部リンクやJS無効リンクは除外
             if (href && href !== '#' && !href.startsWith('http') && !link.classList.contains('disabled')) {
                 e.preventDefault();
                 document.body.classList.remove('loaded');
-                setTimeout(() => {
-                    window.location.href = href;
-                }, 800);
+                setTimeout(() => window.location.href = href, 800);
             }
         });
     });
 
-    // アニメーション開始トリガー
     setTimeout(() => {
-        // 物語ページのブロック表示
         const blocks = document.querySelectorAll('.fade-in-block');
         blocks.forEach(el => el.classList.add('visible'));
 
-        // 目次ページの文字表示
         const chars = document.querySelectorAll('.char-base');
         let delay = 0;
         const delayIncrement = 50;
@@ -33,74 +23,54 @@ document.addEventListener('DOMContentLoaded', () => {
         chars.forEach((char, index) => {
             setTimeout(() => {
                 char.classList.add('visible');
-                // 全文字表示後にリンクを有効化
-                if (index === chars.length - 1) {
-                    setTimeout(activateLinks, 500);
-                }
+                if (index === chars.length - 1) setTimeout(activateLinks, 500);
             }, delay);
             delay += delayIncrement;
         });
     }, 500);
 
-    // 背景Canvas開始
     initBackgroundCanvas();
 });
 
-// 目次リンクの有効化
 function activateLinks() {
-    const links = document.querySelectorAll('.toc-link');
-    links.forEach(link => {
-        link.classList.add('active');
-    });
+    document.querySelectorAll('.toc-link').forEach(link => link.classList.add('active'));
 }
 
-// 目次用テキスト分割処理
+// テキスト分割処理
 const splitTextElements = () => {
     const split = (el, cls) => {
-        if(el.children.length){
-            Array.from(el.children).forEach(c => split(c, cls));
-            return;
-        }
-        const txt = el.textContent.trim();
+        // aタグの中身を優先
+        const target = el.querySelector('a') || el;
+        const txt = target.textContent.trim();
         if(!txt) return;
         
-        el.textContent = '';
+        target.textContent = '';
         txt.split('').forEach(c => {
             const s = document.createElement('span');
             s.textContent = c;
             s.classList.add('char-base', cls);
-            el.appendChild(s);
+            target.appendChild(s);
         });
     };
     document.querySelectorAll('.column-top .line').forEach(l => split(l, 'char-up'));
-    document.querySelectorAll('.column-bottom .line').forEach(l => {
-        const link = l.querySelector('.toc-link');
-        if (link) split(link, 'char-down');
-        else split(l, 'char-down');
-    });
+    document.querySelectorAll('.column-bottom .line').forEach(l => split(l, 'char-down'));
 };
 
-// 目次ページ判定
 if(document.querySelector('.writing-area')) {
     splitTextElements();
 }
 
-// 物語スクロール初期位置調整（右端スタート）
 const storyContainer = document.getElementById('scroll-container');
 if(storyContainer) {
-    setTimeout(() => {
-        storyContainer.scrollLeft = storyContainer.scrollWidth;
-    }, 100);
+    setTimeout(() => storyContainer.scrollLeft = storyContainer.scrollWidth, 100);
 }
 
-// 背景アニメーション
 function initBackgroundCanvas() {
     const cvs = document.getElementById('bg-canvas');
     if(!cvs) return;
     const ctx = cvs.getContext('2d');
     let w, h, lines = [];
     const colors = [{r:104,g:137,b:158}, {r:196,g:163,b:191}];
-    
     const resize = () => { w = cvs.width = window.innerWidth; h = cvs.height = window.innerHeight; };
     window.addEventListener('resize', resize); resize();
     

@@ -9,6 +9,7 @@
     --line-color: #68899e;
     --font-family: 'Noto Serif JP', serif;
     --nav-width: 70px;
+    --gradient-width: 150px; /* グラデーション幅を定義 */
 }
 
 * { box-sizing: border-box; }
@@ -34,7 +35,6 @@ body.loaded {
     opacity: 1;
 }
 
-/* 背景Canvas */
 #bg-canvas {
     position: fixed;
     top: 0;
@@ -46,7 +46,7 @@ body.loaded {
     opacity: 0.6;
 }
 
-/* === 目次 (corridor.html) 用スタイル === */
+/* === 目次用スタイル === */
 .container {
     width: 100vw;
     height: 100vh;
@@ -65,14 +65,11 @@ body.loaded {
     height: auto;
     max-width: 100vw;
     max-height: 100vh;
-    min-width: 0;
-    min-height: 0;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 6rem;
-    box-sizing: border-box;
     padding: 2rem;
 }
 
@@ -93,7 +90,7 @@ body.loaded {
     white-space: nowrap;
 }
 
-/* 目次リンクスタイル */
+/* 目次リンク：Flexをやめてブロック表示に戻す（ズレ防止） */
 .toc-link {
     text-decoration: none;
     color: var(--link-color);
@@ -102,14 +99,10 @@ body.loaded {
     pointer-events: none;
     transition: color 0.3s;
     padding: 5px 0;
-    display: inline-block;
+    display: inline-block; /* シンプルなインラインブロックに変更 */
 }
 
-.toc-link.active {
-    cursor: pointer;
-    pointer-events: auto;
-}
-
+.toc-link.active { cursor: pointer; pointer-events: auto; }
 .toc-link.active:hover { color: var(--line-color); }
 
 .toc-link.active::after {
@@ -117,7 +110,6 @@ body.loaded {
     position: absolute;
     top: 0;
     right: -12px;
-    left: auto;
     width: 1px;
     height: 100%;
     background-color: var(--line-color);
@@ -125,10 +117,10 @@ body.loaded {
     transform-origin: top;
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
 .toc-link.active:hover::after { transform: scaleY(1); }
 
-/* === 物語ページ (各章) 用スタイル === */
+
+/* === 物語ページ用スタイル === */
 .story-view {
     width: 100%;
     height: 100%;
@@ -162,7 +154,6 @@ body.loaded {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 2rem 0;
     gap: 3rem;
 }
 
@@ -176,23 +167,29 @@ body.loaded {
     transition: all 0.3s ease;
     letter-spacing: 0.3em;
     padding: 1rem 5px;
-    white-space: nowrap;
 }
 .nav-item:hover { color: var(--line-color); transform: translateY(-3px); }
-.nav-item.disabled { opacity: 0.3; pointer-events: none; cursor: default; }
+.nav-item.disabled { opacity: 0.3; pointer-events: none; }
 
+/* グラデーション設定 */
 .gradient-overlay-left, .gradient-overlay-right {
-    position: fixed; top: 0; bottom: 0; width: 100px; z-index: 40; pointer-events: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: var(--gradient-width);
+    z-index: 40;
+    pointer-events: none;
 }
 .gradient-overlay-right {
     right: var(--nav-width);
-    background: linear-gradient(to left, var(--bg-color), transparent);
+    background: linear-gradient(to left, var(--bg-color) 20%, transparent);
 }
 .gradient-overlay-left {
     left: 0;
-    background: linear-gradient(to right, var(--bg-color), transparent);
+    background: linear-gradient(to right, var(--bg-color) 20%, transparent);
 }
 
+/* スクロールエリア：余白を大幅に増やしてグラデーション回避 */
 .story-scroll-container {
     width: 100%;
     height: 100%;
@@ -200,10 +197,12 @@ body.loaded {
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     direction: rtl;
-    padding-right: calc(var(--nav-width) + 5vw);
-    padding-left: 5vw;
     display: flex;
     align-items: center;
+    /* 右余白: ナビ幅 + グラデ幅 + 余裕 */
+    padding-right: calc(var(--nav-width) + var(--gradient-width) + 4rem);
+    /* 左余白: グラデ幅 + 余裕 */
+    padding-left: calc(var(--gradient-width) + 4rem);
 }
 
 .story-content {
@@ -219,6 +218,7 @@ body.loaded {
 }
 
 .story-title-block {
+    /* 本文との間隔 */
     margin-left: 6rem;
     display: flex;
     flex-direction: column;
@@ -279,41 +279,20 @@ p {
 }
 .next-chapter-btn:hover { background-color: var(--line-color); color: #fff; }
 
-/* アニメーション */
-.fade-in-block, .char-base {
-    opacity: 0;
-    transition: 1.5s ease;
-}
-.fade-in-block.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
+/* アニメーション定義 */
+.fade-in-block, .char-base { opacity: 0; transition: 1.5s ease; }
+.fade-in-block.visible, .char-base.visible { opacity: 1; transform: translateY(0); }
 .fade-in-block { transform: translateY(10px); }
-
-/* 文字アニメーション用 */
-.char-base {
-    display: inline-block;
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
-}
-.char-base.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
+.char-base { display: inline-block; transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
 .char-down { transform: translateY(-15px); }
 .char-up { transform: translateY(15px); }
 
 @media (max-width: 768px) {
-    :root { --nav-width: 50px; }
+    :root { --nav-width: 50px; --gradient-width: 80px; }
     
-    /* 目次レスポンシブ */
     .writing-area {
-        aspect-ratio: unset;
-        width: 100%;
-        height: 100%;
-        padding: 1rem 0.5rem;
-        flex-direction: row;
-        justify-content: center;
-        gap: 1.5rem;
+        aspect-ratio: unset; width: 100%; height: 100%;
+        padding: 1rem 0.5rem; flex-direction: row; gap: 1.5rem;
     }
     .column { height: auto; flex-grow: 0; gap: 0.8rem; }
     .column-top { align-self: flex-start; align-items: flex-start; }
@@ -321,10 +300,10 @@ p {
     .line { font-size: 0.85rem; margin: 0 0.1rem; line-height: 1.4; }
     .toc-link { padding: 2px 0; }
 
-    /* 物語レスポンシブ */
-    .side-nav { gap: 1.5rem; }
-    .nav-item { font-size: 0.8rem; padding: 0.5rem 2px; }
-    .story-scroll-container { padding-right: calc(var(--nav-width) + 2rem); }
+    .story-scroll-container {
+        padding-right: calc(var(--nav-width) + var(--gradient-width) + 2rem);
+        padding-left: calc(var(--gradient-width) + 2rem);
+    }
     .story-content { height: 85vh; column-gap: 2rem; font-size: 1rem; }
     .story-title-block { margin-left: 3rem; }
     h1.story-title-main { font-size: 1.6rem; }
