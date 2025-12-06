@@ -223,7 +223,7 @@ p { margin: 0 0 0 1.2rem; text-indent: 1em; text-align: justify; }
         /* 右(開始): ナビ + グラデ + 余裕(10vw) */
         padding-right: calc(var(--nav-width) + var(--gradient-width) + 10vw);
         /* 左(終了): グラデ + 余裕(15vw) -> ボタンを中央寄りに */
-        padding-left: calc(var(--gradient-width) + 50vw);
+        padding-left: calc(var(--gradient-width) + 10rem);
     }
     .story-content { height: 80vh; column-gap: 2rem; font-size: 1rem; }
     .story-title-block { margin-left: 2rem; }
