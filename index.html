@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chaton Chic | 風花と水月と...</title>
+    <title>風花と水月と蒼泉と灯莉と咲花</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,16 +11,24 @@
     
     <style>
         :root {
-            --intro-duration: 25s; /* 全体のアニメーション時間 */
-            
-            --main-serif-font: 'Noto Serif JP', serif;
-            --main-sans-font: 'Noto Sans JP', sans-serif;
+            --intro-duration: 25s;
             --text-color: #4a4a4a;
-            --accent-color: #c4a3bf;
             --bg-color: #fcfaf8;
+            --main-serif-font: 'Noto Serif JP', serif;
         }
 
-        /* オープニング画面 */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* スクロールバーが出ないように固定 */
+            background-color: var(--bg-color);
+            font-family: var(--main-serif-font);
+        }
+
+        /* ========================================
+           1. オープニングアニメーション（背面レイヤー）
+           ========================================
+        */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -28,30 +36,15 @@
             width: 100%;
             height: 100%;
             background-color: #ffffff;
-            z-index: 9999;
+            z-index: 1; /* 背面に配置 */
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 2rem;
             box-sizing: border-box;
-            transition: opacity 1.5s ease-in-out, visibility 0s linear 1.5s;
         }
 
-        #splash-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
-        /* ★追加: スキップ時用のクラス 
-           JavaScriptで「訪問済み」と判定された場合、
-           CSSのアニメーション待機時間を無視して即座に消すために使用します。
-        */
-        #splash-screen.skipped {
-            display: none !important;
-        }
-
-        /* アニメーションコンテナ */
+        /* アニメーション関連のCSS（前回と同じ） */
         .intro-card {
             background-color: transparent;
             width: 100%;
@@ -63,48 +56,23 @@
             overflow: hidden;
             position: relative;
         }
-
-        .outline-svg {
-            width: 90%;
-            height: auto;
-            overflow: visible;
-        }
+        .outline-svg { width: 90%; height: auto; overflow: visible; }
+        .outline-text { font-family: var(--main-serif-font); font-size: 90px; font-weight: 900; text-anchor: middle; }
         
-        .outline-text {
-            font-family: var(--main-serif-font);
-            font-size: 90px;
-            font-weight: 900;
-            text-anchor: middle;
-        }
-
         .outline-text tspan {
-            fill: var(--text-color);
-            fill-opacity: 0;
-            stroke: var(--text-color);
-            stroke-width: 1px;
-            stroke-dasharray: 600;
-            stroke-dashoffset: 600;
-            animation-duration: var(--intro-duration);
-            animation-timing-function: linear;
-            animation-iteration-count: 1;
-            animation-fill-mode: forwards;
+            fill: var(--text-color); fill-opacity: 0; stroke: var(--text-color);
+            stroke-width: 1px; stroke-dasharray: 600; stroke-dashoffset: 600;
+            animation-duration: var(--intro-duration); animation-timing-function: linear;
+            animation-iteration-count: 1; animation-fill-mode: forwards;
         }
-
         .border-line {
-            fill: none;
-            stroke: var(--text-color);
-            stroke-width: 1px;
-            stroke-dasharray: 1200;
-            stroke-dashoffset: 1200;
+            fill: none; stroke: var(--text-color); stroke-width: 1px;
+            stroke-dasharray: 1200; stroke-dashoffset: 1200;
             animation: borderDraw var(--intro-duration) linear 1 forwards;
         }
-
         .ripple-circle {
-            fill: none;
-            stroke: var(--text-color);
-            stroke-width: 2px;
-            opacity: 0;
-            transform-origin: center;
+            fill: none; stroke: var(--text-color); stroke-width: 2px;
+            opacity: 0; transform-origin: center;
             animation: rippleEffect var(--intro-duration) ease-out 1 forwards;
         }
 
@@ -124,14 +92,12 @@
         .outline-text tspan:nth-child(13) { animation-name: char13; }
         .outline-text tspan:nth-child(14) { animation-name: char14; }
 
-        /* キーフレーム定義 */
         @keyframes char01 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 8% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char02 { 0% { stroke-dashoffset: 600; fill-opacity: 0; } 8% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char03 { 0%, 2% { stroke-dashoffset: 600; fill-opacity: 0; } 10% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char04 { 0%, 4% { stroke-dashoffset: 600; fill-opacity: 0; } 12% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char05 { 0%, 4% { stroke-dashoffset: 600; fill-opacity: 0; } 12% { stroke-dashoffset: 0; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char06 { 0%, 6% { stroke-dashoffset: 600; fill-opacity: 0; } 14% { stroke-dashoffset: 0; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
-        
         @keyframes char07 { 0%, 8% { stroke-dashoffset: 600; fill-opacity: 0; } 16% { stroke-dashoffset: 0; fill-opacity: 0; } 20% { stroke-dashoffset: 0; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char08 { 0%, 8% { stroke-dashoffset: 600; fill-opacity: 0; } 16% { stroke-dashoffset: 0; fill-opacity: 0; } 20% { stroke-dashoffset: 0; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char09 { 0%, 10% { stroke-dashoffset: 600; fill-opacity: 0; } 18% { stroke-dashoffset: 0; fill-opacity: 0; } 20% { stroke-dashoffset: 0; fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
@@ -140,167 +106,49 @@
         @keyframes char12 { 0%, 14% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { fill-opacity: 0; } 22% { stroke-dashoffset: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char13 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char14 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
+        @keyframes borderDraw { 0%, 30% { stroke-dashoffset: 1200; opacity: 1; } 38% { stroke-dashoffset: 0; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+        @keyframes rippleEffect { 0%, 38% { r: 0; opacity: 1; stroke-width: 2px; } 42% { r: 150px; opacity: 0; stroke-width: 0.5px; } 100% { r: 150px; opacity: 0; stroke-width: 0; } }
 
-        @keyframes borderDraw {
-            0%, 30% { stroke-dashoffset: 1200; opacity: 1; }
-            38% { stroke-dashoffset: 0; opacity: 1; }
-            100% { stroke-dashoffset: 0; opacity: 1; }
-        }
-
-        @keyframes rippleEffect {
-            0%, 38% { r: 0; opacity: 1; stroke-width: 2px; }
-            42% { r: 150px; opacity: 0; stroke-width: 0.5px; }
-            100% { r: 150px; opacity: 0; stroke-width: 0; }
-        }
-    </style>
-
-    <style>
-        body {
-            margin: 0;
-            font-family: var(--main-sans-font);
-            color: var(--text-color);
-            background-color: var(--bg-color);
-        }
-
-        #main-content {
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 2s ease-in-out;
-        }
-        #main-content.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* ★追加: 即時表示用のクラス 
-           アニメーションスキップ時に、フェードインを待たずに即座に表示するためのスタイル
+        /* ========================================
+           2. 遷移先を表示するフレーム（前面レイヤー）
+           ========================================
         */
-        #main-content.immediate-visible {
-            opacity: 1;
-            visibility: visible;
-            transition: none; /* トランジションを無効化 */
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 2rem;
-        }
-
-        /* ヘッダー */
-        .site-header {
-            padding: 2rem 0;
-            text-align: left; /* 左寄せ */
-        }
-        
-        /* ロゴリンク設定 */
-        .logo-link {
-            display: inline-block;
-            transition: opacity 0.3s;
-        }
-        .logo-link:hover {
-            opacity: 0.7;
-        }
-
-        /* ロゴSVG設定 */
-        .logo-svg {
-            width: 100%;
-            /* 1行表示に伴い、横幅の最大値を広げました */
-            max-width: 600px;
-            height: auto;
-            margin: 0;
-            display: block;
-        }
-        .logo-svg text {
-            fill: var(--text-color);
-            font-family: var(--main-serif-font);
-            font-weight: 900;
-        }
-
-        .cat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2.5rem;
-            padding: 2rem 0 5rem;
-        }
-
-        .cat-card {
-            background: #fff;
-            border: 1px solid #eee;
-            padding: 1.5rem;
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .cat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            border-color: var(--accent-color);
-        }
-
-        .cat-card::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border: 1px solid var(--accent-color);
-            border-radius: 50%;
-            opacity: 0;
-            transform: translate(-50%, -50%);
-            transition: all 0.5s ease-out;
-        }
-        .cat-card:hover::after {
-            width: 200px;
-            height: 200px;
-            opacity: 0.2;
-        }
-
-        .cat-image-frame {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 1.5rem;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid var(--bg-color);
-            box-shadow: 0 0 0 1px var(--text-color);
-        }
-
-        .cat-image-frame img {
+        #content-frame {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-        .cat-card:hover .cat-image-frame img {
-            transform: scale(1.1);
-        }
-
-        .cat-name {
-            font-family: var(--main-serif-font);
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin: 0 0 0.5rem;
-            color: var(--text-color);
-        }
-        
-        .cat-desc {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #7a7a7a;
+            border: none;
+            
+            z-index: 10; /* アニメーションより手前に表示 */
+            
+            opacity: 0; /* 最初は透明にしておく */
+            pointer-events: none; /* 透明なときはクリック等を通さない */
+            
+            /* ふんわり表示させるためのトランジション（3秒かけてフェードイン） */
+            transition: opacity 3s ease-in-out;
+            background-color: #fff; /* 背景を白にして下の層を隠す */
         }
 
-        .site-footer {
-            text-align: center;
-            padding: 2rem 0;
-            border-top: 1px solid #eee;
-            font-size: 0.8rem;
-            color: #aaa;
-            font-family: var(--main-serif-font);
+        /* 表示状態のクラス */
+        #content-frame.visible {
+            opacity: 1;
+            pointer-events: auto;
         }
+
+        /* 2回目以降のアクセス用：即座に表示 */
+        #content-frame.immediate {
+            opacity: 1;
+            pointer-events: auto;
+            transition: none; /* アニメーションなし */
+        }
+
+        /* 2回目以降：背景のアニメーションは隠す（リソース節約） */
+        #splash-screen.hidden-immediate {
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -323,106 +171,46 @@
         </div>
     </div>
 
-    <div id="main-content">
-        <header class="site-header">
-            <div class="container">
-                <a href="index.html" class="logo-link">
-                    <!-- ★修正: viewBoxを横長(1500x200)に変更し、1行レイアウトに調整 -->
-                    <svg class="logo-svg" viewBox="0 0 1500 200">
-                        <g>
-                            <!-- 枠線を横長に調整 -->
-                            <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 40 30 L 1460 30 L 1460 170" />
-                            <path fill="none" stroke="#4a4a4a" stroke-width="2" d="M 1460 170 L 40 170 L 40 30" />
-                            
-                            <!-- テキストを1行に配置 -->
-                            <text x="750" y="125" style="font-size: 80px; text-anchor: middle; letter-spacing: 0.1em;">
-                                <tspan>風</tspan><tspan>花</tspan><tspan style="font-size: 72px;">と</tspan><tspan>水</tspan><tspan>月</tspan><tspan style="font-size: 72px;">と</tspan><tspan>蒼</tspan><tspan>泉</tspan><tspan style="font-size: 72px;">と</tspan><tspan>灯</tspan><tspan>莉</tspan><tspan style="font-size: 72px;">と</tspan><tspan>咲</tspan><tspan>花</tspan>
-                            </text>
-                        </g>
-                    </svg>
-                </a>
-            </div>
-        </header>
-
-        <main class="container">
-            <div class="cat-grid">
-                <article class="cat-card">
-                    <div class="cat-image-frame">
-                        <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&h=400&q=80" alt="ロシアンブルー">
-                    </div>
-                    <h2 class="cat-name">Luna</h2>
-                    <p class="cat-desc">静寂を愛するロシアンブルー。</p>
-                </article>
-                
-                <article class="cat-card">
-                    <div class="cat-image-frame">
-                        <img src="https://images.unsplash.com/photo-1573865526739-1065ae16447b?auto=format&fit=crop&w=400&h=400&q=80" alt="黒猫">
-                    </div>
-                    <h2 class="cat-name">Noir</h2>
-                    <p class="cat-desc">影のように寄り添う甘えん坊。</p>
-                </article>
-                
-                <article class="cat-card">
-                    <div class="cat-image-frame">
-                        <img src="https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=crop&w=400&h=400&q=80" alt="スコティッシュフォールド">
-                    </div>
-                    <h2 class="cat-name">Maron</h2>
-                    <p class="cat-desc">おっとりとした癒やしの存在。</p>
-                </article>
-
-                <article class="cat-card">
-                    <div class="cat-image-frame">
-                        <img src="https://images.unsplash.com/photo-1612904370720-74f9b5598fb5?auto=format&fit=crop&w=400&h=400&q=80" alt="白猫">
-                    </div>
-                    <h2 class="cat-name">Blanc</h2>
-                    <p class="cat-desc">雪のような毛並みの貴公子。</p>
-                </article>
-                
-                <article class="cat-card">
-                    <div class="cat-image-frame">
-                        <img src="https://images.unsplash.com/photo-1495360010541-f48722b34f7d?auto=format&fit=crop&w=400&h=400&q=80" alt="ベンガル">
-                    </div>
-                    <h2 class="cat-name">Leo</h2>
-                    <p class="cat-desc">好奇心旺盛な小さな冒険家。</p>
-                </article>
-            </div>
-        </main>
-
-        <footer class="site-footer">
-            <div class="container">
-                &copy; 2024 風花と水月と... All rights reserved.
-            </div>
-        </footer>
-    </div>
+    <iframe id="content-frame" title="Main Content"></iframe>
 
     <script>
-        // DOMの読み込みを待つ
         window.addEventListener('DOMContentLoaded', () => {
+            const iframe = document.getElementById('content-frame');
             const splash = document.getElementById('splash-screen');
-            const mainContent = document.getElementById('main-content');
-            
-            // セッションストレージを確認（キー名は任意の名前 'visited'）
+            const targetUrl = 'https://designtsugihagi-tech.github.io/memory_corridor/corridor.html';
+
+            // セッションストレージを確認
             if (sessionStorage.getItem('visited')) {
-                // ■ 2回目以降のアクセス（すでに訪問済み）
+                // ■ 2回目以降（即時表示）
                 
-                // アニメーションを即座に非表示にするスタイルを適用
-                splash.classList.add('skipped');
+                // アニメーションを非表示
+                splash.classList.add('hidden-immediate');
                 
-                // 本編を即座に表示（フェードインアニメーションも無効化）
-                mainContent.classList.add('immediate-visible');
+                // フレームにURLをセット
+                iframe.src = targetUrl;
                 
+                // 即座に表示するクラスを付与
+                iframe.classList.add('immediate');
+
             } else {
-                // ■ 初回アクセス時
+                // ■ 初回アクセス時（アニメーション → フェードイン）
                 
-                const switchTiming = 11000;
-                
+                // 1. 少し早めに裏でページ読み込みを開始する（8秒後くらい）
+                //    これにより、フェードイン時にはページが表示可能な状態にしておく
                 setTimeout(() => {
-                    splash.classList.add('hidden');
-                    mainContent.classList.add('visible');
+                    iframe.src = targetUrl;
+                }, 8000);
+
+                // 2. アニメーション完了に合わせてフェードイン（11秒後）
+                setTimeout(() => {
+                    iframe.classList.add('visible');
                     
-                    // アニメーション完了後に「訪問済み」フラグを保存
+                    // 訪問済みフラグを保存
                     sessionStorage.setItem('visited', 'true');
-                }, switchTiming);
+                    
+                    // (任意) フェードイン完了後に裏のアニメーションを完全に消すなら
+                    // setTimeout(() => { splash.style.display = 'none'; }, 3000);
+                }, 11000);
             }
         });
     </script>
