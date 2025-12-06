@@ -57,7 +57,14 @@
             position: relative;
         }
         .outline-svg { width: 90%; height: auto; overflow: visible; }
-        .outline-text { font-family: var(--main-serif-font); font-size: 90px; font-weight: 900; text-anchor: middle; }
+        
+        .outline-text { 
+            font-family: var(--main-serif-font); 
+            font-size: 90px; 
+            font-weight: 900; 
+            text-anchor: middle;
+            animation: textFadeOut var(--intro-duration) linear 1 forwards;
+        }
         
         .outline-text tspan {
             fill: var(--text-color); fill-opacity: 0; stroke: var(--text-color);
@@ -65,10 +72,22 @@
             animation-duration: var(--intro-duration); animation-timing-function: linear;
             animation-iteration-count: 1; animation-fill-mode: forwards;
         }
-        .border-line {
+
+        /* ▼ 修正：表示用の線（描画フェーズ用） */
+        .border-appear {
             fill: none; stroke: var(--text-color); stroke-width: 1px;
             stroke-dasharray: 1200; stroke-dashoffset: 1200;
-            animation: borderDraw var(--intro-duration) linear 1 forwards;
+            /* 18%で開始、28%で完了、30%で消える（disappearと交代） */
+            animation: borderAppearAnim var(--intro-duration) linear 1 forwards;
+        }
+
+        /* ▼ 修正：消失用の線（消去フェーズ用） */
+        .border-disappear {
+            fill: none; stroke: var(--text-color); stroke-width: 1px;
+            stroke-dasharray: 1000; stroke-dashoffset: 0;
+            opacity: 0; /* 最初は隠しておく */
+            /* 30%で出現し、41%で消える */
+            animation: borderDisappearAnim var(--intro-duration) linear 1 forwards;
         }
         
         /* 既存の左右の波紋 */
@@ -78,7 +97,7 @@
             animation: rippleEffect var(--intro-duration) ease-out 1 forwards;
         }
 
-        /* ■ 新規追加：中央の大きな波紋 */
+        /* 中央の大きな波紋 */
         .center-ripple-circle {
             fill: none; stroke: var(--text-color); stroke-width: 2.5px;
             opacity: 0; transform-origin: center;
@@ -116,21 +135,42 @@
         @keyframes char13 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         @keyframes char14 { 0%, 16% { stroke-dashoffset: 600; fill-opacity: 0; } 20% { fill-opacity: 0; } 24% { stroke-dashoffset: 0; fill-opacity: 1; } 100% { stroke-dashoffset: 0; fill-opacity: 1; } }
         
-        /* 囲み線：開始23%〜終了33% */
-        @keyframes borderDraw { 
-            0%, 23% { stroke-dashoffset: 1200; opacity: 1; } 
-            33% { stroke-dashoffset: 0; opacity: 1; } 
-            100% { stroke-dashoffset: 0; opacity: 1; } 
+        /* ▼ 修正：表示用のアニメーション
+           左上・右下から線が伸びる
+           30%で透明になり、disappearと交代
+        */
+        @keyframes borderAppearAnim { 
+            0%, 18% { stroke-dashoffset: 1200; opacity: 1; } 
+            28% { stroke-dashoffset: 0; opacity: 1; } 
+            30% { stroke-dashoffset: 0; opacity: 1; }
+            30.1%, 100% { opacity: 0; } 
+        }
+
+        /* ▼ 修正：消失用のアニメーション
+           30%で出現し、その後指定方向へ消える
+           ★ 同時に opacity を 1 -> 0 にしてフェードアウトさせる
+        */
+        @keyframes borderDisappearAnim {
+            0%, 30% { opacity: 0; stroke-dashoffset: 0; }
+            30.1% { opacity: 1; stroke-dashoffset: 0; }
+            41%, 100% { opacity: 0; stroke-dashoffset: -1000; } /* opacityを0に */
         }
         
-        /* 左右の波紋（33%で開始, 37%で終了） */
-        @keyframes rippleEffect { 0%, 33% { r: 0; opacity: 1; stroke-width: 2px; } 37% { r: 150px; opacity: 0; stroke-width: 0.5px; } 100% { r: 150px; opacity: 0; stroke-width: 0; } }
+        @keyframes rippleEffect { 
+            0%, 28% { r: 0; opacity: 1; stroke-width: 2px; } 
+            32% { r: 150px; opacity: 0; stroke-width: 0.5px; } 
+            100% { r: 150px; opacity: 0; stroke-width: 0; } 
+        }
 
-        /* 中央の波紋（左右(33%)より2%遅い35%で開始、46%で終了） */
         @keyframes centerRippleEffect { 
-            0%, 35% { r: 0; opacity: 1; stroke-width: 2.5px; } 
-            46% { r: 500px; opacity: 0; stroke-width: 0; } 
+            0%, 30% { r: 0; opacity: 1; stroke-width: 2.5px; } 
+            41% { r: 500px; opacity: 0; stroke-width: 0; } 
             100% { r: 500px; opacity: 0; stroke-width: 0; } 
+        }
+
+        @keyframes textFadeOut {
+            0%, 30% { opacity: 1; }
+            41%, 100% { opacity: 0; }
         }
 
         /* ========================================
@@ -181,14 +221,35 @@
         <div class="intro-card">
             <svg class="outline-svg" viewBox="0 0 1000 300">
                 <g class="outline-group">
-                    <path class="border-line" d="M 40 30 L 945 30 L 945 280" />
-                    <path class="border-line" d="M 945 280 L 40 280 L 40 30" />
+                    <!-- 
+                       ▼ 1. 表示用のパス (0% - 30%)
+                       元のデザイン通り、左上と右下からコの字型に描画される
+                    -->
+                    <path class="border-appear" d="M 40 30 L 945 30 L 945 280" />
+                    <path class="border-appear" d="M 945 280 L 40 280 L 40 30" />
+
+                    <!-- 
+                       ▼ 2. 消失用のパス (30% - 41%)
+                       30%の時点で表示用と入れ替わり、各辺の指定方向へ消える
+                    -->
+                    
+                    <!-- 上辺：右(945,30) から 左(40,30) へ消える -->
+                    <path class="border-disappear" d="M 945 30 L 40 30" />
+                    
+                    <!-- 下辺：左(40,280) から 右(945,280) へ消える -->
+                    <path class="border-disappear" d="M 40 280 L 945 280" />
+                    
+                    <!-- 右辺：上(945,30) から 下(945,280) へ消える -->
+                    <path class="border-disappear" d="M 945 30 L 945 280" />
+                    
+                    <!-- 左辺：下(40,280) から 上(40,30) へ消える -->
+                    <path class="border-disappear" d="M 40 280 L 40 30" />
                     
                     <!-- 既存の左右の波紋 -->
                     <circle class="ripple-circle" cx="40" cy="30" r="0" />
                     <circle class="ripple-circle" cx="945" cy="280" r="0" />
                     
-                    <!-- ■ 新規追加：中央の大きな波紋（500, 150 はviewBoxの中心） -->
+                    <!-- 中央の大きな波紋 -->
                     <circle class="center-ripple-circle" cx="500" cy="150" r="0" />
                     
                     <text x="492.5" y="130" class="outline-text">
@@ -224,22 +285,16 @@
             } else {
                 // ■ 初回アクセス時（アニメーション → フェードイン）
                 
-                // 1. 少し早めに裏でページ読み込みを開始する（8秒後くらい）
-                //    これにより、フェードイン時にはページが表示可能な状態にしておく
+                // 1. 裏での読み込み開始：29% (7.25s)
                 setTimeout(() => {
                     iframe.src = targetUrl;
-                }, 8000);
+                }, 7250);
 
-                // 2. アニメーション完了に合わせてフェードイン（11秒後）
+                // 2. アニメーション完了に合わせてフェードイン：41% (10.25s)
                 setTimeout(() => {
                     iframe.classList.add('visible');
-                    
-                    // 訪問済みフラグを保存
                     sessionStorage.setItem('visited', 'true');
-                    
-                    // (任意) フェードイン完了後に裏のアニメーションを完全に消すなら
-                    // setTimeout(() => { splash.style.display = 'none'; }, 3000);
-                }, 11000);
+                }, 10250);
             }
         });
     </script>
