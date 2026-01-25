@@ -1,11 +1,18 @@
-// ▼▼▼ あなたの設定データを貼り付けてください ▼▼▼
+// ▼▼▼ あなたの設定データ（組み込み済み） ▼▼▼
 const firebaseConfig = {
-    // ... 前回の内容 ...
+  apiKey: "AIzaSyABw5Wm_zA8rJ9d-KPZhI4NrxeqjQsJQkY",
+  authDomain: "chat-memo-8b4f0.firebaseapp.com",
+  projectId: "chat-memo-8b4f0",
+  storageBucket: "chat-memo-8b4f0.firebasestorage.app",
+  messagingSenderId: "110934071534",
+  appId: "1:110934071534:web:357b02e404c369abf3bbff"
 };
 // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+// Firebase初期化
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+// ※Storageは使いません
 
 // ==========================================
 // タブ設定
@@ -21,7 +28,7 @@ let currentTabId = TABS[0].id;
 let unsubscribe = null;
 let replyingTo = null;
 
-// DOM要素
+// DOM要素の取得
 const messageArea = document.getElementById('message-area');
 const textInput = document.getElementById('text-input');
 const sendBtn = document.getElementById('send-btn');
@@ -32,6 +39,7 @@ const replyPreview = document.getElementById('reply-preview');
 const replyTargetText = document.getElementById('reply-target-text');
 const loadingOverlay = document.getElementById('loading-overlay');
 
+// 読み込み完了時に実行
 document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     switchTab(currentTabId);
@@ -57,14 +65,17 @@ function switchTab(tabId) {
     currentTabId = tabId;
     const tabConfig = TABS.find(t => t.id === tabId);
 
+    // タブの選択状態更新
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
     const activeBtn = document.getElementById(`tab-btn-${tabId}`);
     if(activeBtn) activeBtn.classList.add('active');
 
+    // 背景色の更新（10%の薄さ）
     document.documentElement.style.setProperty('--theme-color', tabConfig.color);
     const bg = hexToRgba(tabConfig.color, 0.1); 
     document.documentElement.style.setProperty('--theme-bg', bg);
 
+    // データ読み込み
     loadMessagesForTab(tabId);
 }
 
@@ -84,11 +95,13 @@ function loadMessagesForTab(tabId) {
                 renderMessage(doc.id, doc.data());
             });
             window.scrollTo(0, document.body.scrollHeight);
+        }, (error) => {
+            console.error("データ読み込みエラー:", error);
         });
 }
 
 // ------------------------------------------------
-// 送信処理（Storageを使わずBase64で保存）
+// 送信処理（画像圧縮・Base64版）
 // ------------------------------------------------
 if(sendBtn){
     sendBtn.addEventListener('click', () => handleSend());
@@ -99,6 +112,7 @@ if(textInput){
     });
 }
 
+// 画像ボタンとファイル選択の連携
 if(imageBtn && imageInput) {
     imageBtn.addEventListener('click', () => {
         imageInput.click();
@@ -111,9 +125,11 @@ if(imageBtn && imageInput) {
 
 async function handleSend(file = null) {
     const text = textInput.value;
+    // テキストも画像もなければ何もしない
     if (text === '' && !file) return;
 
-    loadingOverlay.style.display = 'flex';
+    // ローディング表示
+    if(loadingOverlay) loadingOverlay.style.display = 'flex';
 
     try {
         let imageData = null;
@@ -123,32 +139,33 @@ async function handleSend(file = null) {
             imageData = await compressImage(file);
         }
 
-        // Firestoreに保存（StorageではなくDBに直接書き込み）
+        // Firestoreに保存
         await db.collection("memos").add({
             text: text,
-            imageUrl: imageData, // ここに長い文字列が入ります
+            imageUrl: imageData, // 文字列として保存
             tab: currentTabId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             isDone: false,
             replyTo: replyingTo ? replyingTo : null
         });
 
+        // 入力クリア
         textInput.value = '';
-        imageInput.value = ''; 
+        if(imageInput) imageInput.value = ''; 
         cancelReply();
 
     } catch (error) {
         console.error("送信エラー:", error);
-        alert("送信に失敗しました。\n画像のサイズが大きすぎる可能性があります。");
+        alert("送信に失敗しました。\n" + error.message);
     } finally {
-        loadingOverlay.style.display = 'none';
+        if(loadingOverlay) loadingOverlay.style.display = 'none';
     }
 }
 
 // ★画像を圧縮してBase64文字列にする関数
 function compressImage(file) {
     return new Promise((resolve, reject) => {
-        const maxWidth = 800; // 横幅を800pxに制限
+        const maxWidth = 800; // 最大横幅
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
@@ -159,7 +176,7 @@ function compressImage(file) {
                 let width = img.width;
                 let height = img.height;
 
-                // サイズ調整
+                // 比率を維持してリサイズ
                 if (width > maxWidth) {
                     height *= maxWidth / width;
                     width = maxWidth;
@@ -170,7 +187,7 @@ function compressImage(file) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // 圧縮率 0.6 (60%画質) でJPEG変換
+                // JPEG形式、画質0.6(60%)で圧縮して文字化
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
                 resolve(dataUrl);
             };
@@ -195,6 +212,8 @@ function renderMessage(id, data) {
     }
 
     const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '...';
+    
+    // URL自動リンク
     const linkedText = autoLink(escapeHtml(data.text || ''));
     
     // 画像表示
@@ -243,6 +262,7 @@ function escapeHtml(str) {
     return str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[match]));
 }
 
+// グローバル関数（HTML側から呼ぶため）
 window.toggleDone = function(id, status) {
     db.collection("memos").doc(id).update({ isDone: status });
 }
