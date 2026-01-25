@@ -16,14 +16,21 @@
         <div id="message-area" class="message-area"></div>
     </div>
 
+    <div id="loading-overlay" class="loading-overlay" style="display:none;">
+        <div class="spinner"></div>
+    </div>
+
     <div id="reply-preview" class="reply-preview" style="display:none;">
         <span id="reply-target-text"></span>
         <button onclick="cancelReply()">×</button>
     </div>
 
     <div class="input-area">
+        <input type="file" id="image-input" accept="image/*" style="display: none;">
+        
+        <button id="image-btn" class="icon-btn"><span class="material-icons">add_a_photo</span></button>
         <input type="text" id="text-input" placeholder="メモを入力...">
-        <button id="send-btn"><span class="material-icons">send</span></button>
+        <button id="send-btn" class="send-btn"><span class="material-icons">send</span></button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
