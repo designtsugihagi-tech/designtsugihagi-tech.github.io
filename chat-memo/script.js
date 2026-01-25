@@ -1,9 +1,15 @@
-// ▼▼▼ 前回のあなたのfirebaseConfigをここに貼ってください ▼▼▼
+// ▼▼▼ あなたの設定データ（組み込み済み） ▼▼▼
 const firebaseConfig = {
-    // ... 前回の内容をコピペ ...
+  apiKey: "AIzaSyABw5Wm_zA8rJ9d-KPZhI4NrxeqjQsJQkY",
+  authDomain: "chat-memo-8b4f0.firebaseapp.com",
+  projectId: "chat-memo-8b4f0",
+  storageBucket: "chat-memo-8b4f0.firebasestorage.app",
+  messagingSenderId: "110934071534",
+  appId: "1:110934071534:web:357b02e404c369abf3bbff"
 };
 // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
+// Firebase初期化
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -32,13 +38,17 @@ const replyTargetText = document.getElementById('reply-target-text');
 let replyingTo = null;
 
 // アプリ起動時の処理
-initTabs();
-switchTab(currentTabId);
+// DOM読み込み完了を待ってから実行（安全策）
+document.addEventListener('DOMContentLoaded', () => {
+    initTabs();
+    switchTab(currentTabId);
+});
 
 // ------------------------------------------------
 // タブ生成と切り替え機能
 // ------------------------------------------------
 function initTabs() {
+    if(!tabContainer) return;
     tabContainer.innerHTML = '';
     TABS.forEach(tab => {
         const btn = document.createElement('div');
@@ -56,12 +66,11 @@ function switchTab(tabId) {
 
     // 1. タブの見た目を更新
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(`tab-btn-${tabId}`).classList.add('active');
+    const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+    if(activeBtn) activeBtn.classList.add('active');
 
     // 2. テーマカラー（CSS変数）を更新
-    // 100%の色
     document.documentElement.style.setProperty('--theme-color', tabConfig.color);
-    // 20%の色（背景用）を作る関数呼び出し
     const bg = hexToRgba(tabConfig.color, 0.2); 
     document.documentElement.style.setProperty('--theme-bg', bg);
 
@@ -82,17 +91,28 @@ function loadMessagesForTab(tabId) {
 
     // 選択されたタブIDを持つデータだけを取得
     unsubscribe = db.collection("memos")
-        .where("tab", "==", tabId) // ★ここがポイント：タブでフィルタリング
+        .where("tab", "==", tabId)
         .orderBy("createdAt", "asc")
         .onSnapshot((snapshot) => {
-            // 変更があったデータだけ処理するのではなく、シンプルに全描画（並び順維持のため）
-            // ※データ量が増えると遅くなるので、本当は差分更新が良いですが簡易実装です
             messageArea.innerHTML = ""; 
             snapshot.forEach((doc) => {
                 renderMessage(doc.id, doc.data());
             });
             window.scrollTo(0, document.body.scrollHeight);
+        }, (error) => {
+            console.error("データ取得エラー:", error);
         });
+}
+
+// 送信ボタンクリック時
+if(sendBtn){
+    sendBtn.addEventListener('click', sendMessage);
+}
+// Enterキー入力時
+if(textInput){
+    textInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
 }
 
 function sendMessage() {
@@ -105,6 +125,10 @@ function sendMessage() {
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         isDone: false,
         replyTo: replyingTo ? replyingTo : null
+    })
+    .catch((error) => {
+        console.error("送信エラー:", error);
+        alert("送信できませんでした。");
     });
 
     textInput.value = '';
@@ -112,7 +136,7 @@ function sendMessage() {
 }
 
 // ------------------------------------------------
-// ユーティリティ・その他（前回とほぼ同じ）
+// ユーティリティ・その他
 // ------------------------------------------------
 function renderMessage(id, data) {
     const card = document.createElement('div');
@@ -163,13 +187,13 @@ window.toggleDone = function(id, status) {
 }
 window.setReply = function(text) {
     replyingTo = { text: text };
-    replyTargetText.textContent = `返信: ${text.substring(0, 15)}...`;
-    replyPreview.style.display = 'flex';
-    textInput.focus();
+    if(replyTargetText) replyTargetText.textContent = `返信: ${text.substring(0, 15)}...`;
+    if(replyPreview) replyPreview.style.display = 'flex';
+    if(textInput) textInput.focus();
 }
 window.cancelReply = function() {
     replyingTo = null;
-    replyPreview.style.display = 'none';
+    if(replyPreview) replyPreview.style.display = 'none';
 }
 window.deleteMessage = function(id) {
     if(confirm('削除しますか？')) {
