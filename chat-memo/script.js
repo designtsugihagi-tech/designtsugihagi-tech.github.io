@@ -1,11 +1,4 @@
-// ▼▼▼ ここをあなたの設定に書き換えてください ▼▼▼
-const firebaseConfig = {
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
+// ▼▼▼ あなたの設定データ（ここを修正しました） ▼▼▼
 const firebaseConfig = {
   apiKey: "AIzaSyABw5Wm_zA8rJ9d-KPZhI4NrxeqjQsJQkY",
   authDomain: "chat-memo-8b4f0.firebaseapp.com",
@@ -14,13 +7,9 @@ const firebaseConfig = {
   messagingSenderId: "110934071534",
   appId: "1:110934071534:web:357b02e404c369abf3bbff"
 };
+// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-};
-// ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-
-// Firebase初期化
+// Firebase初期化（import文を使わない書き方にしています）
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -32,15 +21,17 @@ const replyTargetText = document.getElementById('reply-target-text');
 
 let replyingTo = null; // リプライ対象のデータを一時保存
 
-// リアルタイムでデータを取得（同期の肝）
+// リアルタイムでデータを取得
 db.collection("memos").orderBy("createdAt", "asc")
     .onSnapshot((snapshot) => {
         messageArea.innerHTML = ""; // 一旦クリア
         snapshot.forEach((doc) => {
             renderMessage(doc.id, doc.data());
         });
-        // 自動スクロール
         window.scrollTo(0, document.body.scrollHeight);
+    }, (error) => {
+        console.error("データ取得エラー:", error);
+        // もしここでエラーが出る場合、Firestoreデータベースが作成されていない可能性があります
     });
 
 // 送信処理
@@ -53,16 +44,22 @@ function sendMessage() {
     const text = textInput.value;
     if (text === '') return;
 
-    // データベースに追加
     db.collection("memos").add({
         text: text,
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        isDone: false, // 完了チェック用
-        replyTo: replyingTo ? replyingTo : null // リプライ情報
+        isDone: false,
+        replyTo: replyingTo ? replyingTo : null
+    })
+    .then(() => {
+        console.log("送信成功");
+    })
+    .catch((error) => {
+        console.error("送信エラー:", error);
+        alert("送信できませんでした。Firestoreの設定を確認してください。");
     });
 
     textInput.value = '';
-    cancelReply(); // リプライ状態解除
+    cancelReply();
 }
 
 // 画面表示処理
@@ -71,13 +68,11 @@ function renderMessage(id, data) {
     card.classList.add('message-card');
     if (data.isDone) card.classList.add('done');
 
-    // リプライ（引用）がある場合
     let quoteHtml = '';
     if (data.replyTo) {
         quoteHtml = `<div class="quote-block">Re: ${escapeHtml(data.replyTo.text)}</div>`;
     }
 
-    // 日付フォーマット
     const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('ja-JP') : '送信中...';
 
     card.innerHTML = `
@@ -92,12 +87,10 @@ function renderMessage(id, data) {
                 <span class="material-icons">${data.isDone ? 'check_box' : 'check_box_outline_blank'}</span>
                 ${data.isDone ? '済' : 'チェック'}
             </button>
-            
             <button class="action-btn" onclick="setReply('${escapeHtml(data.text)}')">
                 <span class="material-icons">reply</span> 返信
             </button>
-
-             <button class="action-btn" onclick="deleteMessage('${id}')" style="color:#ff6b6b;">
+            <button class="action-btn" onclick="deleteMessage('${id}')" style="color:#ff6b6b;">
                 <span class="material-icons">delete</span>
             </button>
         </div>
@@ -106,14 +99,10 @@ function renderMessage(id, data) {
     messageArea.appendChild(card);
 }
 
-// 完了/未完了の切り替え
 window.toggleDone = function(id, status) {
-    db.collection("memos").doc(id).update({
-        isDone: status
-    });
+    db.collection("memos").doc(id).update({ isDone: status });
 }
 
-// リプライモードにする
 window.setReply = function(text) {
     replyingTo = { text: text };
     replyTargetText.textContent = `返信: ${text.substring(0, 15)}...`;
@@ -121,29 +110,20 @@ window.setReply = function(text) {
     textInput.focus();
 }
 
-// リプライキャンセル
 window.cancelReply = function() {
     replyingTo = null;
     replyPreview.style.display = 'none';
 }
 
-// メッセージ削除
 window.deleteMessage = function(id) {
     if(confirm('削除しますか？')) {
         db.collection("memos").doc(id).delete();
     }
 }
 
-// HTMLエスケープ（セキュリティ用）
 function escapeHtml(str) {
     if(!str) return "";
     return str.replace(/[&<>"']/g, function(match) {
-        return {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        }[match];
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[match];
     });
 }
