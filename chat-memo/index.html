@@ -1,300 +1,58 @@
-/* すべての要素のサイズ計算を直感的にする */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>カラータブメモ</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-:root {
-    --theme-color: #555; 
-    --theme-bg: #fff;
-}
-
-body {
-    background-color: var(--theme-bg);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 0;
-    padding-top: 60px;
-    padding-bottom: 90px;
-    min-height: 100vh;
-    transition: background-color 0.3s;
+    <link rel="icon" href="icon.png">
     
-    /* PCでの背景ドラッグ用: 手のひらアイコン */
-    cursor: grab;
-}
+    <link rel="apple-touch-icon" href="icon.png">
 
-/* メモカードや入力欄の上では通常のカーソルに戻す */
-.message-card, .input-area, .header, .modal-box {
-    cursor: auto; 
-}
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="カラータブメモ">
+</head>
+<body>
+    <div class="header">
+        <div id="tab-container" class="tab-container"></div>
+    </div>
 
-.header {
-    background-color: #ffffff;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 100;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
+    <div class="chat-container">
+        <div id="message-area" class="message-area"></div>
+    </div>
 
-.tab-container {
-    display: flex;
-    overflow-x: auto;
-}
+    <div id="loading-overlay" class="loading-overlay" style="display:none;">
+        <div class="spinner"></div>
+    </div>
 
-.tab-item {
-    flex: 1;
-    text-align: center;
-    padding: 15px 10px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #888;
-    border-bottom: 3px solid transparent;
-    transition: 0.3s;
-    white-space: nowrap;
-}
+    <div id="reply-preview" class="reply-preview" style="display:none;">
+        <span id="reply-target-text"></span>
+        <button onclick="cancelReply()">×</button>
+    </div>
 
-.tab-item.active {
-    color: var(--theme-color);
-    border-bottom: 3px solid var(--theme-color);
-}
+    <div id="delete-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <p class="modal-text">このメモを削除しますか？</p>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeDeleteModal()">キャンセル</button>
+                <button class="modal-btn delete" onclick="confirmDelete()">削除する</button>
+            </div>
+        </div>
+    </div>
 
-.chat-container {
-    padding: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-}
+    <div class="input-area">
+        <input type="file" id="image-input" accept="image/*" style="display: none;">
+        
+        <button id="image-btn" class="icon-btn"><span class="material-icons">add_a_photo</span></button>
+        <input type="text" id="text-input" placeholder="メモを入力...">
+        <button id="send-btn" class="send-btn"><span class="material-icons">send</span></button>
+    </div>
 
-/* メッセージカード */
-.message-card {
-    background-color: #fff;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    position: relative;
-    transition: 0.2s;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
-}
-
-.message-card.done {
-    opacity: 0.6;
-    background-color: rgba(255,255,255,0.6);
-    text-decoration: line-through;
-    box-shadow: none;
-}
-
-.message-header {
-    font-size: 0.75rem;
-    color: rgba(0,0,0,0.4);
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.message-text {
-    font-size: 1rem;
-    line-height: 1.6;
-    white-space: pre-wrap;
-    color: #333;
-    word-break: break-all;
-}
-
-.message-text a {
-    color: var(--theme-color);
-    text-decoration: underline;
-}
-
-/* 画像表示 */
-.message-image {
-    max-width: 100%;
-    max-height: 300px;
-    border-radius: 8px;
-    margin-top: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    object-fit: contain;
-    display: block; 
-}
-
-.quote-block {
-    background-color: #f9f9f9;
-    border-left: 4px solid var(--theme-color);
-    padding: 8px 10px;
-    margin-bottom: 10px;
-    font-size: 0.85rem;
-    color: #666;
-    border-radius: 4px;
-}
-
-.actions {
-    margin-top: 5px;
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.action-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #999;
-    font-size: 1.1rem;
-    padding: 2px;
-    transition: 0.2s;
-}
-
-.action-btn:hover {
-    color: var(--theme-color);
-    background-color: #f0f0f0;
-    border-radius: 50%;
-}
-
-.input-area {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    background-color: #fff;
-    padding: 10px 15px;
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    z-index: 100;
-    gap: 10px;
-}
-
-#text-input {
-    flex-grow: 1;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 24px;
-    outline: none;
-    font-size: 16px;
-}
-
-.icon-btn {
-    background: none;
-    border: none;
-    color: #888;
-    cursor: pointer;
-    padding: 8px;
-}
-.icon-btn:hover {
-    color: var(--theme-color);
-}
-
-.send-btn {
-    background: var(--theme-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-    flex-shrink: 0;
-}
-
-.reply-preview {
-    position: fixed;
-    bottom: 70px;
-    left: 0;
-    width: 100%;
-    background: rgba(255,255,255,0.95);
-    padding: 10px 20px;
-    border-top: 1px solid #ccd;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #555;
-    z-index: 90;
-}
-
-.loading-overlay {
-    position: fixed;
-    top:0; left:0; width:100%; height:100%;
-    background: rgba(255,255,255,0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 200;
-}
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #ddd;
-    border-top: 4px solid var(--theme-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-/* 削除モーダル用のスタイル */
-.modal-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-}
-
-.modal-box {
-    background: #fff;
-    padding: 25px 30px;
-    border-radius: 16px;
-    width: 85%;
-    max-width: 320px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    text-align: center;
-    animation: fadeIn 0.2s ease-out;
-}
-
-.modal-text {
-    font-size: 1rem;
-    color: #333;
-    margin: 0 0 20px 0;
-    font-weight: bold;
-}
-
-.modal-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.modal-btn {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.2s;
-}
-
-.modal-btn.cancel {
-    background-color: #f0f0f0;
-    color: #666;
-}
-.modal-btn.cancel:hover {
-    background-color: #e0e0e0;
-}
-
-.modal-btn.delete {
-    background-color: #ff6b6b;
-    color: white;
-}
-.modal-btn.delete:hover {
-    background-color: #fa5252;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
