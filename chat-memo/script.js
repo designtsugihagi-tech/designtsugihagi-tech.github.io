@@ -23,7 +23,14 @@ const TABS = [
     { id: 'private', name: 'プライベート', color: '#51cf66' }
 ];
 
-let currentTabId = TABS[0].id;
+// ★変更: ローカルストレージから前回のタブIDを取得
+const savedTabId = localStorage.getItem('currentTabId');
+// 保存されたIDが現在のTABSに含まれているか確認（タブ構成変更への対策）
+const isValidTab = TABS.some(t => t.id === savedTabId);
+
+// 有効なら保存されたID、無ければ初期値を使用
+let currentTabId = isValidTab ? savedTabId : TABS[0].id;
+
 let unsubscribe = null;
 let replyingTo = null;
 let deleteTargetId = null; 
@@ -44,7 +51,7 @@ const deleteModal = document.getElementById('delete-modal');
 document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     switchTab(currentTabId);
-    initSwipeGestures(); // ★ジェスチャー機能の初期化
+    initSwipeGestures();
 });
 
 // ------------------------------------------------
@@ -65,6 +72,10 @@ function initTabs() {
 
 function switchTab(tabId) {
     currentTabId = tabId;
+    
+    // ★追加: タブを切り替えたらローカルストレージに保存
+    localStorage.setItem('currentTabId', tabId);
+
     const tabConfig = TABS.find(t => t.id === tabId);
 
     // タブの選択状態更新
@@ -292,9 +303,9 @@ window.closeDeleteModal = function() {
     }
 }
 
-// ==========================================
-// ★追加: スワイプ・ドラッグでのタブ切り替え
-// ==========================================
+// ------------------------------------------------
+// スワイプ・ドラッグでのタブ切り替え
+// ------------------------------------------------
 function initSwipeGestures() {
     let startX = 0;
     let startY = 0;
@@ -321,7 +332,6 @@ function initSwipeGestures() {
 
     // --- PC・マウス操作 (背景ドラッグ) ---
     document.addEventListener('mousedown', (e) => {
-        // メモカード、入力欄、ヘッダー、モーダル内でのクリックは無視（テキスト選択などを優先）
         if (e.target.closest('.message-card') || 
             e.target.closest('.input-area') || 
             e.target.closest('.header') ||
@@ -329,17 +339,16 @@ function initSwipeGestures() {
             return;
         }
 
-        // 背景をつかんだと判定
         isDragging = true;
         startX = e.clientX;
-        document.body.style.cursor = 'grabbing'; // カーソルを変更
-        e.preventDefault(); // テキスト選択などを防止
+        document.body.style.cursor = 'grabbing';
+        e.preventDefault();
     });
 
     document.addEventListener('mouseup', (e) => {
         if (!isDragging) return;
         isDragging = false;
-        document.body.style.cursor = ''; // カーソルを戻す
+        document.body.style.cursor = '';
 
         const endX = e.clientX;
         const diffX = endX - startX;
@@ -359,7 +368,6 @@ function initSwipeGestures() {
     });
 }
 
-// タブ移動のロジック
 function goNextTab() {
     const currentIndex = TABS.findIndex(t => t.id === currentTabId);
     const nextIndex = (currentIndex + 1) % TABS.length;

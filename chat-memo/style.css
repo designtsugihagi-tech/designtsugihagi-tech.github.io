@@ -17,7 +17,7 @@ body {
     min-height: 100vh;
     transition: background-color 0.3s;
     
-    /* ★PCでの背景ドラッグ用: 手のひらアイコン */
+    /* PCでの背景ドラッグ用: 手のひらアイコン */
     cursor: grab;
 }
 
