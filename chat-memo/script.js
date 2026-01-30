@@ -12,7 +12,6 @@ const firebaseConfig = {
 // Firebase初期化
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-// ※Storageは使いません
 
 // ==========================================
 // タブ設定
@@ -27,6 +26,7 @@ const TABS = [
 let currentTabId = TABS[0].id;
 let unsubscribe = null;
 let replyingTo = null;
+let deleteTargetId = null; 
 
 // DOM要素の取得
 const messageArea = document.getElementById('message-area');
@@ -38,11 +38,13 @@ const tabContainer = document.getElementById('tab-container');
 const replyPreview = document.getElementById('reply-preview');
 const replyTargetText = document.getElementById('reply-target-text');
 const loadingOverlay = document.getElementById('loading-overlay');
+const deleteModal = document.getElementById('delete-modal');
 
 // 読み込み完了時に実行
 document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     switchTab(currentTabId);
+    initSwipeGestures(); // ★ジェスチャー機能の初期化
 });
 
 // ------------------------------------------------
@@ -94,10 +96,18 @@ function loadMessagesForTab(tabId) {
             snapshot.forEach((doc) => {
                 renderMessage(doc.id, doc.data());
             });
-            window.scrollTo(0, document.body.scrollHeight);
+            scrollToBottom();
         }, (error) => {
             console.error("データ読み込みエラー:", error);
         });
+}
+
+function scrollToBottom() {
+    setTimeout(() => {
+        if (document.body.scrollHeight > window.innerHeight) {
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    }, 50);
 }
 
 // ------------------------------------------------
@@ -112,7 +122,6 @@ if(textInput){
     });
 }
 
-// 画像ボタンとファイル選択の連携
 if(imageBtn && imageInput) {
     imageBtn.addEventListener('click', () => {
         imageInput.click();
@@ -125,34 +134,30 @@ if(imageBtn && imageInput) {
 
 async function handleSend(file = null) {
     const text = textInput.value;
-    // テキストも画像もなければ何もしない
     if (text === '' && !file) return;
 
-    // ローディング表示
     if(loadingOverlay) loadingOverlay.style.display = 'flex';
 
     try {
         let imageData = null;
-
-        // 画像がある場合、圧縮してBase64テキストに変換
         if (file) {
             imageData = await compressImage(file);
         }
 
-        // Firestoreに保存
         await db.collection("memos").add({
             text: text,
-            imageUrl: imageData, // 文字列として保存
+            imageUrl: imageData,
             tab: currentTabId,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             isDone: false,
             replyTo: replyingTo ? replyingTo : null
         });
 
-        // 入力クリア
         textInput.value = '';
         if(imageInput) imageInput.value = ''; 
         cancelReply();
+        
+        scrollToBottom();
 
     } catch (error) {
         console.error("送信エラー:", error);
@@ -162,10 +167,9 @@ async function handleSend(file = null) {
     }
 }
 
-// ★画像を圧縮してBase64文字列にする関数
 function compressImage(file) {
     return new Promise((resolve, reject) => {
-        const maxWidth = 800; // 最大横幅
+        const maxWidth = 800;
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
@@ -175,19 +179,14 @@ function compressImage(file) {
                 const canvas = document.createElement('canvas');
                 let width = img.width;
                 let height = img.height;
-
-                // 比率を維持してリサイズ
                 if (width > maxWidth) {
                     height *= maxWidth / width;
                     width = maxWidth;
                 }
-
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-
-                // JPEG形式、画質0.6(60%)で圧縮して文字化
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
                 resolve(dataUrl);
             };
@@ -212,12 +211,11 @@ function renderMessage(id, data) {
     }
 
     const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '...';
-    
-    // URL自動リンク
     const linkedText = autoLink(escapeHtml(data.text || ''));
     
-    // 画像表示
-    const imageHtml = data.imageUrl ? `<img src="${data.imageUrl}" class="message-image">` : '';
+    const imageHtml = data.imageUrl 
+        ? `<img src="${data.imageUrl}" class="message-image" onload="scrollToBottom()">` 
+        : '';
 
     card.innerHTML = `
         ${quoteHtml}
@@ -262,7 +260,6 @@ function escapeHtml(str) {
     return str.replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[match]));
 }
 
-// グローバル関数（HTML側から呼ぶため）
 window.toggleDone = function(id, status) {
     db.collection("memos").doc(id).update({ isDone: status });
 }
@@ -277,7 +274,100 @@ window.cancelReply = function() {
     if(replyPreview) replyPreview.style.display = 'none';
 }
 window.deleteMessage = function(id) {
-    if(confirm('削除しますか？')) {
-        db.collection("memos").doc(id).delete();
+    deleteTargetId = id;
+    if(deleteModal) {
+        deleteModal.style.display = 'flex';
     }
+}
+window.confirmDelete = function() {
+    if (deleteTargetId) {
+        db.collection("memos").doc(deleteTargetId).delete();
+    }
+    closeDeleteModal();
+}
+window.closeDeleteModal = function() {
+    deleteTargetId = null;
+    if(deleteModal) {
+        deleteModal.style.display = 'none';
+    }
+}
+
+// ==========================================
+// ★追加: スワイプ・ドラッグでのタブ切り替え
+// ==========================================
+function initSwipeGestures() {
+    let startX = 0;
+    let startY = 0;
+    let isDragging = false;
+
+    // --- スマホ・タッチ操作 (スワイプ) ---
+    document.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const diffX = endX - startX;
+        const diffY = endY - startY;
+
+        // 横方向の移動が大きく、縦方向の移動が小さい場合のみ反応 (スクロール阻害防止)
+        if (Math.abs(diffX) > 60 && Math.abs(diffY) < 100) {
+            if (diffX > 0) goPrevTab();
+            else goNextTab();
+        }
+    });
+
+    // --- PC・マウス操作 (背景ドラッグ) ---
+    document.addEventListener('mousedown', (e) => {
+        // メモカード、入力欄、ヘッダー、モーダル内でのクリックは無視（テキスト選択などを優先）
+        if (e.target.closest('.message-card') || 
+            e.target.closest('.input-area') || 
+            e.target.closest('.header') ||
+            e.target.closest('.modal-box')) {
+            return;
+        }
+
+        // 背景をつかんだと判定
+        isDragging = true;
+        startX = e.clientX;
+        document.body.style.cursor = 'grabbing'; // カーソルを変更
+        e.preventDefault(); // テキスト選択などを防止
+    });
+
+    document.addEventListener('mouseup', (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        document.body.style.cursor = ''; // カーソルを戻す
+
+        const endX = e.clientX;
+        const diffX = endX - startX;
+
+        // 50px以上動かしたら切り替え
+        if (Math.abs(diffX) > 50) {
+            if (diffX > 0) goPrevTab();
+            else goNextTab();
+        }
+    });
+
+    document.addEventListener('mouseleave', () => {
+        if(isDragging) {
+            isDragging = false;
+            document.body.style.cursor = '';
+        }
+    });
+}
+
+// タブ移動のロジック
+function goNextTab() {
+    const currentIndex = TABS.findIndex(t => t.id === currentTabId);
+    const nextIndex = (currentIndex + 1) % TABS.length;
+    switchTab(TABS[nextIndex].id);
+}
+
+function goPrevTab() {
+    const currentIndex = TABS.findIndex(t => t.id === currentTabId);
+    const prevIndex = (currentIndex - 1 + TABS.length) % TABS.length;
+    switchTab(TABS[prevIndex].id);
 }

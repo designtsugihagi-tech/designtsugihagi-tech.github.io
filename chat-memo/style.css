@@ -1,3 +1,8 @@
+/* すべての要素のサイズ計算を直感的にする */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 :root {
     --theme-color: #555; 
     --theme-bg: #fff;
@@ -8,9 +13,17 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
     padding-top: 60px;
-    padding-bottom: 120px;
+    padding-bottom: 90px;
     min-height: 100vh;
     transition: background-color 0.3s;
+    
+    /* ★PCでの背景ドラッグ用: 手のひらアイコン */
+    cursor: grab;
+}
+
+/* メモカードや入力欄の上では通常のカーソルに戻す */
+.message-card, .input-area, .header, .modal-box {
+    cursor: auto; 
 }
 
 .header {
@@ -51,24 +64,28 @@ body {
     margin: 0 auto;
 }
 
+/* メッセージカード */
 .message-card {
-    background-color: transparent;
-    border-bottom: 1px solid rgba(0,0,0,0.05); 
-    padding: 15px 5px;
-    margin-bottom: 0;
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
     position: relative;
     transition: 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
 }
 
 .message-card.done {
-    opacity: 0.5;
+    opacity: 0.6;
+    background-color: rgba(255,255,255,0.6);
     text-decoration: line-through;
+    box-shadow: none;
 }
 
 .message-header {
     font-size: 0.75rem;
     color: rgba(0,0,0,0.4);
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
 }
@@ -89,27 +106,28 @@ body {
 /* 画像表示 */
 .message-image {
     max-width: 100%;
-    max-height: 300px; /* 縦長すぎないように制限 */
-    border-radius: 12px;
+    max-height: 300px;
+    border-radius: 8px;
     margin-top: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     object-fit: contain;
+    display: block; 
 }
 
 .quote-block {
-    background-color: rgba(255,255,255,0.5);
+    background-color: #f9f9f9;
     border-left: 4px solid var(--theme-color);
-    padding: 5px 10px;
-    margin-bottom: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
     font-size: 0.85rem;
-    color: #555;
+    color: #666;
     border-radius: 4px;
 }
 
 .actions {
-    margin-top: 8px;
+    margin-top: 5px;
     display: flex;
-    gap: 15px;
+    gap: 10px;
     justify-content: flex-end;
 }
 
@@ -117,15 +135,15 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    color: rgba(0,0,0,0.4);
+    color: #999;
     font-size: 1.1rem;
-    padding: 5px;
+    padding: 2px;
     transition: 0.2s;
 }
 
 .action-btn:hover {
     color: var(--theme-color);
-    background-color: rgba(255,255,255,0.3);
+    background-color: #f0f0f0;
     border-radius: 50%;
 }
 
@@ -212,3 +230,71 @@ body {
     animation: spin 1s linear infinite;
 }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* 削除モーダル用のスタイル */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.modal-box {
+    background: #fff;
+    padding: 25px 30px;
+    border-radius: 16px;
+    width: 85%;
+    max-width: 320px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    text-align: center;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-text {
+    font-size: 1rem;
+    color: #333;
+    margin: 0 0 20px 0;
+    font-weight: bold;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.modal-btn.cancel {
+    background-color: #f0f0f0;
+    color: #666;
+}
+.modal-btn.cancel:hover {
+    background-color: #e0e0e0;
+}
+
+.modal-btn.delete {
+    background-color: #ff6b6b;
+    color: white;
+}
+.modal-btn.delete:hover {
+    background-color: #fa5252;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
