@@ -1,10 +1,7 @@
-/* すべての要素のサイズ計算を直感的にする */
-*, *::before, *::after {
-    box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 :root {
-    --theme-color: #555; 
+    --theme-color: #555;
     --theme-bg: #fff;
 }
 
@@ -12,20 +9,16 @@ body {
     background-color: var(--theme-bg);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
-    padding-top: 60px;
+    padding-top: 100px; /* updated dynamically by JS */
     padding-bottom: 90px;
     min-height: 100vh;
     transition: background-color 0.3s;
-    
-    /* PCでの背景ドラッグ用: 手のひらアイコン */
     cursor: grab;
 }
 
-/* メモカードや入力欄の上では通常のカーソルに戻す */
-.message-card, .input-area, .header, .modal-box {
-    cursor: auto; 
-}
+.message-card, .input-area, .header, .modal-box { cursor: auto; }
 
+/* ==================== HEADER ==================== */
 .header {
     background-color: #ffffff;
     position: fixed;
@@ -33,7 +26,7 @@ body {
     left: 0;
     width: 100%;
     z-index: 100;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
 .tab-container {
@@ -44,13 +37,14 @@ body {
 .tab-item {
     flex: 1;
     text-align: center;
-    padding: 15px 10px;
+    padding: 13px 10px;
     cursor: pointer;
     font-weight: bold;
     color: #888;
     border-bottom: 3px solid transparent;
     transition: 0.3s;
     white-space: nowrap;
+    font-size: 0.9rem;
 }
 
 .tab-item.active {
@@ -58,37 +52,124 @@ body {
     border-bottom: 3px solid var(--theme-color);
 }
 
+/* Sort mode: tabs become drop targets */
+.tab-item.sort-drop-zone {
+    background-color: #f7f7f7;
+    border-bottom: 3px dashed #ccc;
+}
+.tab-item.drag-over {
+    background-color: rgba(0,0,0,0.06);
+    border-bottom: 3px solid var(--theme-color);
+}
+
+/* ==================== ACTION ROW ==================== */
+.action-row {
+    display: flex;
+    gap: 8px;
+    padding: 6px 12px;
+    border-top: 1px solid #f0f0f0;
+    background: #fff;
+}
+
+.action-row-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: bold;
+    color: #666;
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+.action-row-btn .material-icons { font-size: 1rem; }
+
+.action-row-btn:hover {
+    background: #ebebeb;
+    color: #444;
+}
+
+.action-row-btn.active {
+    background: var(--theme-color);
+    border-color: var(--theme-color);
+    color: #fff;
+}
+
+/* ==================== CHAT AREA ==================== */
 .chat-container {
-    padding: 20px;
+    padding: 16px;
     max-width: 600px;
     margin: 0 auto;
 }
 
-/* メッセージカード */
+/* ==================== CARDS ==================== */
 .message-card {
     background-color: #fff;
     border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
     position: relative;
-    transition: 0.2s;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1); 
+    transition: box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Depth indentation visual */
+.message-card.depth-1 {
+    border-left: 3px solid #bbb;
+    background-color: #fafafa;
+}
+.message-card.depth-2 {
+    border-left: 3px solid #ddd;
+    background-color: #f5f5f5;
 }
 
 .message-card.done {
-    opacity: 0.6;
-    background-color: rgba(255,255,255,0.6);
+    opacity: 0.55;
     text-decoration: line-through;
     box-shadow: none;
 }
 
+/* Sort mode */
+.message-card.sortable {
+    cursor: grab;
+    user-select: none;
+}
+.message-card.sortable:active { cursor: grabbing; }
+.message-card.dragging {
+    opacity: 0.45;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+.message-card.card-drop-above {
+    border-top: 2px solid var(--theme-color);
+}
+.message-card.card-drop-below {
+    border-bottom: 2px solid var(--theme-color);
+}
+
+.drag-handle {
+    color: #bbb;
+    font-size: 1.2rem;
+    cursor: grab;
+    vertical-align: middle;
+}
+
+/* ==================== CARD INTERNALS ==================== */
 .message-header {
     font-size: 0.75rem;
     color: rgba(0,0,0,0.4);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 8px;
 }
+
+.msg-date { flex-shrink: 0; }
 
 .message-text {
     font-size: 1rem;
@@ -103,7 +184,6 @@ body {
     text-decoration: underline;
 }
 
-/* 画像表示 */
 .message-image {
     max-width: 100%;
     max-height: 300px;
@@ -111,23 +191,24 @@ body {
     margin-top: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     object-fit: contain;
-    display: block; 
+    display: block;
 }
 
 .quote-block {
     background-color: #f9f9f9;
     border-left: 4px solid var(--theme-color);
-    padding: 8px 10px;
-    margin-bottom: 10px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
     font-size: 0.85rem;
     color: #666;
     border-radius: 4px;
 }
 
 .actions {
-    margin-top: 5px;
     display: flex;
-    gap: 10px;
+    gap: 4px;
+    align-items: center;
+    flex-wrap: wrap;
     justify-content: flex-end;
 }
 
@@ -135,18 +216,88 @@ body {
     background: none;
     border: none;
     cursor: pointer;
-    color: #999;
-    font-size: 1.1rem;
-    padding: 2px;
+    color: #aaa;
+    padding: 3px;
+    border-radius: 50%;
     transition: 0.2s;
+    display: flex;
+    align-items: center;
 }
+.action-btn .material-icons { font-size: 1.1rem; }
 
 .action-btn:hover {
     color: var(--theme-color);
     background-color: #f0f0f0;
-    border-radius: 50%;
 }
 
+.action-btn.delete-btn:hover { color: #ff6b6b; }
+
+/* ==================== EDIT MODE ==================== */
+.edit-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 8px;
+    border: 1px solid var(--theme-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+    line-height: 1.6;
+    resize: vertical;
+    outline: none;
+    background: #fff;
+    color: #333;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.edit-save-btn,
+.edit-cancel-btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.edit-save-btn {
+    background: var(--theme-color);
+    color: #fff;
+}
+.edit-save-btn:hover { filter: brightness(0.9); }
+
+.edit-cancel-btn {
+    background: #f0f0f0;
+    color: #666;
+}
+.edit-cancel-btn:hover { background: #e0e0e0; }
+
+/* ==================== LINK CHILD MODAL ==================== */
+.link-list {
+    max-height: 240px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.link-candidate {
+    padding: 12px 14px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    transition: 0.15s;
+}
+.link-candidate:last-child { border-bottom: none; }
+.link-candidate:hover { background: #f5f5f5; color: var(--theme-color); }
+
+/* ==================== INPUT AREA ==================== */
 .input-area {
     position: fixed;
     bottom: 0;
@@ -156,7 +307,6 @@ body {
     box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
     display: flex;
     align-items: center;
-    box-sizing: border-box;
     z-index: 100;
     gap: 10px;
 }
@@ -177,9 +327,7 @@ body {
     cursor: pointer;
     padding: 8px;
 }
-.icon-btn:hover {
-    color: var(--theme-color);
-}
+.icon-btn:hover { color: var(--theme-color); }
 
 .send-btn {
     background: var(--theme-color);
@@ -196,6 +344,7 @@ body {
     flex-shrink: 0;
 }
 
+/* ==================== REPLY PREVIEW ==================== */
 .reply-preview {
     position: fixed;
     bottom: 70px;
@@ -204,7 +353,6 @@ body {
     background: rgba(255,255,255,0.95);
     padding: 10px 20px;
     border-top: 1px solid #ccd;
-    box-sizing: border-box;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -212,9 +360,10 @@ body {
     z-index: 90;
 }
 
+/* ==================== LOADING ==================== */
 .loading-overlay {
     position: fixed;
-    top:0; left:0; width:100%; height:100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(255,255,255,0.7);
     display: flex;
     justify-content: center;
@@ -222,20 +371,18 @@ body {
     z-index: 200;
 }
 .spinner {
-    width: 40px;
-    height: 40px;
+    width: 40px; height: 40px;
     border: 4px solid #ddd;
     border-top: 4px solid var(--theme-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* 削除モーダル用のスタイル */
+/* ==================== MODALS ==================== */
 .modal-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.4);
     display: flex;
     justify-content: center;
@@ -245,10 +392,10 @@ body {
 
 .modal-box {
     background: #fff;
-    padding: 25px 30px;
+    padding: 24px 28px;
     border-radius: 16px;
-    width: 85%;
-    max-width: 320px;
+    width: 88%;
+    max-width: 340px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     text-align: center;
     animation: fadeIn 0.2s ease-out;
@@ -257,7 +404,7 @@ body {
 .modal-text {
     font-size: 1rem;
     color: #333;
-    margin: 0 0 20px 0;
+    margin: 0 0 18px 0;
     font-weight: bold;
 }
 
@@ -277,24 +424,34 @@ body {
     font-weight: bold;
     transition: 0.2s;
 }
-
-.modal-btn.cancel {
-    background-color: #f0f0f0;
-    color: #666;
-}
-.modal-btn.cancel:hover {
-    background-color: #e0e0e0;
-}
-
-.modal-btn.delete {
-    background-color: #ff6b6b;
-    color: white;
-}
-.modal-btn.delete:hover {
-    background-color: #fa5252;
-}
+.modal-btn.cancel { background: #f0f0f0; color: #666; }
+.modal-btn.cancel:hover { background: #e0e0e0; }
+.modal-btn.delete { background: #ff6b6b; color: white; }
+.modal-btn.delete:hover { background: #fa5252; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+/* ==================== TOAST ==================== */
+.toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    padding: 9px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
